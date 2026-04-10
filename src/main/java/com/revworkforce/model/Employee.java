@@ -12,6 +12,7 @@ public class Employee {
     private String designation;
     private double salary;
     private String status;
+    private int managerId;
 
     public int getEmployeeId() {
         return employeeId;
@@ -101,4 +102,11 @@ public class Employee {
         this.status = status;
     }
 
+    public int getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(int managerId) {
+        this.managerId = managerId;
+    }
 }
