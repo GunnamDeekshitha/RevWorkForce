@@ -1,17 +1,8 @@
 package com.revworkforce.ui;
 
-import com.revworkforce.dao.EmployeeDAO;
-import com.revworkforce.dao.LeaveDAO;
-import com.revworkforce.dao.LeaveBalanceDAO;
-import com.revworkforce.model.Employee;
-import com.revworkforce.model.LeaveRequest;
-import com.revworkforce.model.LeaveBalance;
-import com.revworkforce.model.Holiday;
-import com.revworkforce.dao.HolidayDAO;
-import com.revworkforce.dao.PerformanceDAO;
-import com.revworkforce.model.PerformanceReview;
-import com.revworkforce.model.Goal;
-import com.revworkforce.dao.GoalDAO;
+import com.revworkforce.model.*;
+import com.revworkforce.service.*;
+
 import java.util.List;
 import java.util.Scanner;
 
@@ -19,7 +10,11 @@ public class EmployeeMenu {
 
     public static void show(Employee emp) {
         Scanner sc = new Scanner(System.in);
-        EmployeeDAO dao = new EmployeeDAO();
+        EmployeeService service = new EmployeeService();
+        AuthService authService = new AuthService();
+        int unread = service.getUnreadCount(emp.getEmployeeId());
+        System.out.println("Unread Notifications: " + unread);
+
 
         while (true) {
             System.out.println("\nWelcome Employee: " + emp.getName());
@@ -37,81 +32,49 @@ public class EmployeeMenu {
             System.out.println("12. Add Goal");
             System.out.println("13. View Goals");
             System.out.println("14. Update Goal Status");
-            System.out.println("15. Logout");
+            System.out.println("15. View Announcements");
+            System.out.println("16. View Birthdays");
+            System.out.println("17. View Work Anniversaries");
+            System.out.println("18. View Notifications");
+            System.out.println("19. Change Password");
+            System.out.println("20. Logout");
 
             int choice = sc.nextInt();
-            sc.nextLine(); // 🔥 clear buffer
-
+            sc.nextLine();
             switch (choice) {
-
-                // 🔹 VIEW PROFILE
                 case 1:
-                    Employee e = dao.getEmployeeById(emp.getEmployeeId());
-
+                    Employee e = service.getProfile(emp.getEmployeeId());
                     if (e != null) {
                         System.out.println("Name: " + e.getName());
                         System.out.println("Email: " + e.getEmail());
                         System.out.println("Phone: " + e.getPhone());
                         System.out.println("Department: " + e.getDepartment());
                         System.out.println("Designation: " + e.getDesignation());
+                        System.out.println("Emergency Contact Name: " + e.getEmergencyContactName());
+                        System.out.println("Emergency Contact Phone: " + e.getEmergencyContactPhone());
                     }
                     break;
-
-                // 🔹 APPLY LEAVE
                 case 2:
-                    EmployeeDAO daoo = new EmployeeDAO();
-
-                    int managerIdd = emp.getManagerId();
-
-                    if (managerIdd != 0) {
-                        Employee manager = daoo.getEmployeeById(managerIdd);
-
-                        if (manager != null) {
-                            System.out.println("Reporting Manager: " + manager.getName());
-                            System.out.println("Manager Email: " + manager.getEmail());
-                        }
+                    Employee manager = service.getManager(emp.getManagerId());
+                    if (manager != null) {
+                        System.out.println("Reporting Manager: " + manager.getName());
+                        System.out.println("Manager Email: " + manager.getEmail());
                     }
-                    LeaveDAO leaveDAO = new LeaveDAO();
-                    LeaveBalanceDAO lbDAO = new LeaveBalanceDAO();
                     LeaveRequest leave = new LeaveRequest();
-
                     leave.setEmployeeId(emp.getEmployeeId());
-
-                    System.out.print("Enter Leave Type (CL/SL/PL): ");
-                    String type = sc.nextLine();
-                    leave.setLeaveType(type);
-
+                    System.out.print("Enter Leave Type (CL/SL/PL/PR): ");
+                    leave.setLeaveType(sc.nextLine());
                     System.out.print("Enter Start Date (YYYY-MM-DD): ");
                     leave.setStartDate(java.sql.Date.valueOf(sc.nextLine()));
-
                     System.out.print("Enter End Date (YYYY-MM-DD): ");
                     leave.setEndDate(java.sql.Date.valueOf(sc.nextLine()));
-
                     System.out.print("Enter Reason: ");
                     leave.setReason(sc.nextLine());
-
-                    // 🔥 Calculate days
-                    int days = (int) ((leave.getEndDate().getTime() - leave.getStartDate().getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
-                    // 🔥 Validation
-                    if (lbDAO.hasEnoughLeave(emp.getEmployeeId(), type, days)) {
-
-                        leaveDAO.applyLeave(leave);
-                        lbDAO.updateLeaveBalance(emp.getEmployeeId(), type, days);
-
-                        System.out.println("Leave applied and balance updated!");
-
-                    } else {
-                        System.out.println("Not enough leave balance!");
-                    }
-
+                    String result = service.applyLeave(emp, leave);
+                    System.out.println(result);
                     break;
-
-                // 🔹 VIEW MY LEAVES
                 case 3:
-                    LeaveDAO leaveDAO2 = new LeaveDAO();
-                    List<LeaveRequest> leaves = leaveDAO2.getLeavesByEmployeeId(emp.getEmployeeId());
-
+                    List<LeaveRequest> leaves = service.getMyLeaves(emp.getEmployeeId());
                     for (LeaveRequest l : leaves) {
                         System.out.println("Leave ID: " + l.getLeaveId());
                         System.out.println("Type: " + l.getLeaveType());
@@ -122,100 +85,77 @@ public class EmployeeMenu {
                         System.out.println("Manager Comment: " + l.getManagerComment());
                         System.out.println("----------------------");
                     }
-                    break; // 🔥 IMPORTANT FIX
-
-                // 🔹 VIEW LEAVE BALANCE
+                    break;
                 case 4:
-                    LeaveBalanceDAO lbDAO2 = new LeaveBalanceDAO();
-                    LeaveBalance lb = lbDAO2.getLeaveBalance(emp.getEmployeeId());
-
+                    LeaveBalance lb = service.getLeaveBalance(emp.getEmployeeId());
                     if (lb != null) {
                         System.out.println("Casual Leave: " + lb.getCasualLeave());
                         System.out.println("Sick Leave: " + lb.getSickLeave());
                         System.out.println("Paid Leave: " + lb.getPaidLeave());
+                        System.out.println("Privilege Leave: " + lb.getPrivilegeLeave());
                     } else {
                         System.out.println("No leave balance found!");
                     }
                     break;
-
-                // 🔹 CANCEL LEAVE
                 case 5:
-                    LeaveDAO leaveDAO3 = new LeaveDAO();
-                    LeaveBalanceDAO lbDAO3 = new LeaveBalanceDAO();
-
                     System.out.print("Enter Leave ID to cancel: ");
                     int leaveId = sc.nextInt();
-                    sc.nextLine(); // clear buffer
-
-                    LeaveRequest leaveObj = leaveDAO3.getLeaveById(leaveId);
-
-                    if (leaveObj != null
-                            && leaveObj.getEmployeeId() == emp.getEmployeeId() // 🔥 SECURITY CHECK
-                            && leaveObj.getStatus().equalsIgnoreCase("PENDING")) {
-
-                        int cancelDays = (int) ((leaveObj.getEndDate().getTime() - leaveObj.getStartDate().getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
-                        lbDAO3.restoreLeaveBalance(leaveObj.getEmployeeId(), leaveObj.getLeaveType(), cancelDays);
-
-                        leaveDAO3.cancelLeave(leaveId);
-
-                        System.out.println("Leave cancelled and balance restored!");
-
-                    } else {
-                        System.out.println("Cannot cancel this leave!");
-                    }
-
+                    sc.nextLine();
+                    String msg = service.cancelLeave(emp.getEmployeeId(), leaveId);
+                    System.out.println(msg);
                     break;
-
-                // 🔹 LOGOUT
 
                 case 6:
-                    EmployeeDAO dao7 = new EmployeeDAO();
-
-                    System.out.print("Enter new phone: ");
+                    System.out.print("Enter new phone (press Enter to skip): ");
                     String phone = sc.nextLine();
 
-                    System.out.print("Enter new address: ");
+                    System.out.print("Enter new address (press Enter to skip): ");
                     String address = sc.nextLine();
 
-                    dao7.updateEmployeeProfile(emp.getEmployeeId(), phone, address);
+                    System.out.print("Enter emergency contact name (press Enter to skip): ");
+                    String eName = sc.nextLine();
 
+                    System.out.print("Enter emergency contact phone (press Enter to skip): ");
+                    String ePhone = sc.nextLine();
+                    if (!phone.isEmpty() && !phone.matches("\\d{10}")) {
+                        System.out.println("Invalid phone number! Must be 10 digits.");
+                        break;
+                    }
+
+                    if (!ePhone.isEmpty() && !phone.matches("\\d{10}")) {
+                        System.out.println("Invalid emergency phone!");
+                        break;
+                    }
+                    service.updateProfile(emp.getEmployeeId(), phone, address, eName, ePhone);
+                    System.out.println("Profile updated!");
                     break;
                 case 7:
-                    EmployeeDAO dao8 = new EmployeeDAO();
-
-                    int managerId = emp.getManagerId();
-
-                    if (managerId == 0) {
+                    if (emp.getManagerId() == 0) {
                         System.out.println("No manager assigned!");
                         break;
                     }
 
-                    Employee manager = dao8.getEmployeeById(managerId);
+                    Employee mgr = service.getManager(emp.getManagerId());
 
-                    if (manager != null) {
-                        System.out.println("Manager Name: " + manager.getName());
-                        System.out.println("Manager Email: " + manager.getEmail());
-                        System.out.println("Department: " + manager.getDepartment());
+                    if (mgr != null) {
+                        System.out.println("Manager Name: " + mgr.getName());
+                        System.out.println("Manager Email: " + mgr.getEmail());
+                        System.out.println("Department: " + mgr.getDepartment());
                     } else {
                         System.out.println("Manager not found!");
                     }
-
                     break;
                 case 8:
-                    HolidayDAO holidayDAO = new HolidayDAO();
-
-                    List<Holiday> holidays = holidayDAO.getAllHolidays();
+                    List<Holiday> holidays = service.getHolidays();
 
                     System.out.println("=== Company Holidays ===");
 
                     for (Holiday h : holidays) {
                         System.out.println(h.getHolidayDate() + " - " + h.getHolidayName());
                     }
+                    break;
                 case 9:
-                    EmployeeDAO dao10 = new EmployeeDAO();
-
-                    List<Employee> employees = dao10.getAllEmployeeDetails();
+                    List<Employee> employees = service.getAllEmployees();
 
                     System.out.println("=== Employee Directory ===");
 
@@ -226,8 +166,8 @@ public class EmployeeMenu {
                         System.out.println("Designation: " + ee.getDesignation());
                         System.out.println("----------------------");
                     }
+                    break;
                 case 10:
-                    PerformanceDAO pDAO = new PerformanceDAO();
                     PerformanceReview review = new PerformanceReview();
 
                     review.setEmployeeId(emp.getEmployeeId());
@@ -249,13 +189,12 @@ public class EmployeeMenu {
                     review.setRating(sc.nextInt());
                     sc.nextLine();
 
-                    pDAO.addReview(review);
-
+                    service.submitReview(review);
+                    System.out.println("Review submitted!");
                     break;
-                case 11:
-                    PerformanceDAO pDAO2 = new PerformanceDAO();
 
-                    List<PerformanceReview> reviews = pDAO2.getReviewsByEmployee(emp.getEmployeeId());
+                case 11:
+                    List<PerformanceReview> reviews = service.getReviews(emp.getEmployeeId());
 
                     if (reviews.isEmpty()) {
                         System.out.println("No reviews found!");
@@ -270,10 +209,10 @@ public class EmployeeMenu {
                             System.out.println("----------------------");
                         }
                     }
-
                     break;
+
+                // 🔹 ADD GOAL
                 case 12:
-                    GoalDAO gDAO = new GoalDAO();
                     Goal goal = new Goal();
 
                     goal.setEmployeeId(emp.getEmployeeId());
@@ -287,13 +226,16 @@ public class EmployeeMenu {
                     System.out.print("Enter priority (HIGH/MEDIUM/LOW): ");
                     goal.setPriority(sc.nextLine());
 
-                    gDAO.addGoal(goal);
+                    service.addGoal(goal);
+                    System.out.println("Goal added!");
 
+                    System.out.print("Enter Success Metrics: ");
+                    goal.setSuccessMetrics(sc.nextLine());
                     break;
-                case 13:
-                    GoalDAO gDAO2 = new GoalDAO();
 
-                    List<Goal> goals = gDAO2.getGoalsByEmployee(emp.getEmployeeId());
+                // 🔹 VIEW GOALS
+                case 13:
+                    List<Goal> goals = service.getGoals(emp.getEmployeeId());
 
                     for (Goal g : goals) {
                         System.out.println("Goal ID: " + g.getGoalId());
@@ -301,12 +243,11 @@ public class EmployeeMenu {
                         System.out.println("Deadline: " + g.getDeadline());
                         System.out.println("Priority: " + g.getPriority());
                         System.out.println("Status: " + g.getStatus());
+                        System.out.println("Success Metrics: " + g.getSuccessMetrics());
                         System.out.println("----------------------");
                     }
                     break;
                 case 14:
-                    GoalDAO gDAO3 = new GoalDAO();
-
                     System.out.print("Enter Goal ID: ");
                     int goalId = sc.nextInt();
                     sc.nextLine();
@@ -314,15 +255,69 @@ public class EmployeeMenu {
                     System.out.print("Enter new status (PENDING/IN_PROGRESS/COMPLETED): ");
                     String status = sc.nextLine();
 
-                    gDAO3.updateGoalStatus(goalId, status);
-
+                    service.updateGoalStatus(goalId, status);
+                    System.out.println("Goal updated!");
                     break;
-                    case 15:
+                case 15:
+                    List<Announcement> list = service.getAnnouncements();
+
+                    System.out.println("=== Announcements ===");
+
+                    for (Announcement a : list) {
+                        System.out.println("Title: " + a.getTitle());
+                        System.out.println("Message: " + a.getMessage());
+                        System.out.println("Date: " + a.getCreatedAt());
+                        System.out.println("----------------------");
+                    }
+                    break;
+                case 16:
+                    List<Employee> birthdays = service.getBirthdays();
+
+                    System.out.println("=== Upcoming Birthdays ===");
+
+                    for (Employee eb : birthdays) {
+                        System.out.println(eb.getName() + " - " + eb.getDateOfBirth());
+                    }
+                    break;
+
+                case 17:
+                    List<Employee> anniversaries = service.getAnniversaries();
+
+                    System.out.println("=== Work Anniversaries ===");
+
+                    for (Employee ea : anniversaries) {
+                        System.out.println(ea.getName() + " - " + ea.getJoiningDate());
+                    }
+                    break;
+                case 18:
+                    List<Notification> notes = service.getNotifications(emp.getEmployeeId());
+
+                    for (Notification n : notes) {
+                        System.out.println("Message: " + n.getMessage());
+                        System.out.println("Status: " + n.getStatus());
+                        System.out.println("Date: " + n.getCreatedAt());
+                        System.out.println("----------------------");
+                    }
+
+                    service.markNotificationsRead(emp.getEmployeeId());
+                    break;
+                case 19:
+                    System.out.print("Enter current password: ");
+                    String oldPass = sc.nextLine();
+
+                    System.out.print("Enter new password: ");
+                    String newPass = sc.nextLine();
+
+                    String msgg = authService.changePassword(emp.getEmployeeId(), oldPass, newPass);
+                    System.out.println(msgg);
+                    break;
+                case 20:
                     System.out.println("Logged out!");
                     return;
                 default:
                     System.out.println("Invalid choice!");
             }
+
         }
     }
 }

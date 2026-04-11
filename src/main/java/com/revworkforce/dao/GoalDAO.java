@@ -7,23 +7,18 @@ import java.sql.ResultSet;
 import java.util.List;
 import java.util.ArrayList;
 
-
 public class GoalDAO {
     public void addGoal(Goal goal) {
-
-        String query = "INSERT INTO goals (employee_id, description, deadline, priority, status) VALUES (?, ?, ?, ?, ?)";
-
+        String query = "INSERT INTO goals (employee_id, description, deadline, priority, success_metrics, status) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
-
             ps.setInt(1, goal.getEmployeeId());
             ps.setString(2, goal.getDescription());
             ps.setDate(3, goal.getDeadline());
             ps.setString(4, goal.getPriority());
+            ps.setString(5, goal.getSuccessMetrics());
             ps.setString(5, "PENDING");
-
             ps.executeUpdate();
-
             System.out.println("Goal added successfully!");
 
         } catch (Exception e) {
@@ -33,15 +28,11 @@ public class GoalDAO {
     public List<Goal> getGoalsByEmployee(int empId) {
 
         List<Goal> list = new ArrayList<>();
-
         String query = "SELECT * FROM goals WHERE employee_id = ?";
-
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
-
             ps.setInt(1, empId);
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
                 Goal g = new Goal();
 
@@ -51,6 +42,7 @@ public class GoalDAO {
                 g.setDeadline(rs.getDate("deadline"));
                 g.setPriority(rs.getString("priority"));
                 g.setStatus(rs.getString("status"));
+                g.setSuccessMetrics(rs.getString("success_metrics"));
 
                 list.add(g);
             }
@@ -78,5 +70,38 @@ public class GoalDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public List<Goal> getGoalsByManager(int managerId) {
+        List<Goal> list = new ArrayList<>();
+
+        String sql = "SELECT g.* FROM goals g " +
+                "JOIN employee e ON g.employee_id = e.employee_id " +
+                "WHERE e.manager_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, managerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Goal g = new Goal();
+
+                g.setGoalId(rs.getInt("goal_id"));
+                g.setEmployeeId(rs.getInt("employee_id"));
+                g.setDescription(rs.getString("description"));
+                g.setDeadline(rs.getDate("deadline"));
+                g.setPriority(rs.getString("priority"));
+                g.setStatus(rs.getString("status"));
+                g.setSuccessMetrics(rs.getString("success_metrics"));
+
+                list.add(g);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

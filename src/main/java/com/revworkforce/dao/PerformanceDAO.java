@@ -117,4 +117,47 @@ public class PerformanceDAO {
             e.printStackTrace();
         }
     }
+    public PerformanceReview getReviewById(int reviewId) {
+        PerformanceReview r = null;
+
+        String sql = "SELECT * FROM performance_review WHERE review_id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, reviewId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                r = new PerformanceReview();
+
+                r.setReviewId(rs.getInt("review_id"));
+                r.setEmployeeId(rs.getInt("employee_id"));
+                r.setYear(rs.getInt("year"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return r;
+    }
+    public void updateRating(int reviewId, int rating) {
+
+        String sql = "UPDATE performance_review SET rating=? WHERE review_id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, rating);
+            ps.setInt(2, reviewId);
+
+            ps.executeUpdate();
+
+            System.out.println("Rating updated!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -6,6 +6,7 @@ public class LeaveBalance {
     private int casualLeave;
     private int sickLeave;
     private int paidLeave;
+    private int privilegeLeave;
 
     public int getEmployeeId() {
         return employeeId;
@@ -37,5 +38,12 @@ public class LeaveBalance {
 
     public void setPaidLeave(int paidLeave) {
         this.paidLeave = paidLeave;
+    }
+    public int getPrivilegeLeave() {
+        return privilegeLeave;
+    }
+
+    public void setPrivilegeLeave(int privilegeLeave) {
+        this.privilegeLeave = privilegeLeave;
     }
 }

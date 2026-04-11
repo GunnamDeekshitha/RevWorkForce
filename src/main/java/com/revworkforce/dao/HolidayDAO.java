@@ -38,4 +38,34 @@ public class HolidayDAO {
 
         return list;
     }
+    public void addHoliday(Holiday h) {
+        String sql = "INSERT INTO holiday (name, date, description) VALUES (?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, h.getHolidayName());
+            ps.setDate(2, h.getHolidayDate());
+            ps.setString(3, h.getDescription());
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteHoliday(int id) {
+        String sql = "DELETE FROM holiday WHERE id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

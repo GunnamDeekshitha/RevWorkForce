@@ -7,17 +7,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.sql.Statement;
 import java.util.List;
 import java.util.ArrayList;
 
 public class EmployeeDAO {
     private static final Logger logger = LogManager.getLogger(EmployeeDAO.class);
-    // 🔹 INSERT EMPLOYEE
     public void addEmployee(Employee emp) {
-        String query = "INSERT INTO employee (name, email, password, phone, address, role, department, designation, salary, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO employee (name, email, password, phone, address, role, department, designation, salary, date_of_birth, date_of_joining, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
-
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, emp.getName());
             ps.setString(2, emp.getEmail());
             ps.setString(3, emp.getPassword());
@@ -27,8 +27,9 @@ public class EmployeeDAO {
             ps.setString(7, emp.getDepartment());
             ps.setString(8, emp.getDesignation());
             ps.setDouble(9, emp.getSalary());
-            ps.setString(10, emp.getStatus());
-
+            ps.setDate(10, new java.sql.Date(emp.getDateOfBirth().getTime()));
+            ps.setDate(11, new java.sql.Date(emp.getJoiningDate().getTime()));
+            ps.setString(12, emp.getStatus());
             ps.executeUpdate();
             logger.info("Employee Added Successfully!");
 
@@ -37,7 +38,6 @@ public class EmployeeDAO {
         }
     }
 
-    // 🔹 GET EMPLOYEE BY EMAIL (for login later)
     public Employee getEmployeeByEmail(String email) {
         String query = "SELECT * FROM employee WHERE email = ?";
 
@@ -61,7 +61,11 @@ public class EmployeeDAO {
                 emp.setDesignation(rs.getString("designation"));
                 emp.setSalary(rs.getDouble("salary"));
                 emp.setStatus(rs.getString("status"));
+                emp.setDateOfBirth(rs.getDate("date_of_birth"));
+                emp.setJoiningDate(rs.getDate("date_of_joining"));
                 emp.setManagerId(rs.getInt("manager_id"));
+                emp.setEmergencyContactName(rs.getString("emergency_contact_name"));
+                emp.setEmergencyContactPhone(rs.getString("emergency_contact_phone"));
 
                 return emp;
             }
@@ -72,7 +76,7 @@ public class EmployeeDAO {
 
         return null;
     }
-    // 🔹 GET EMPLOYEE BY ID
+
     public Employee getEmployeeById(int id) {
         String query = "SELECT * FROM employee WHERE employee_id = ?";
 
@@ -95,7 +99,11 @@ public class EmployeeDAO {
                 emp.setDesignation(rs.getString("designation"));
                 emp.setSalary(rs.getDouble("salary"));
                 emp.setStatus(rs.getString("status"));
+                emp.setDateOfBirth(rs.getDate("date_of_birth"));
+                emp.setJoiningDate(rs.getDate("date_of_joining"));
                 emp.setManagerId(rs.getInt("manager_id"));
+                emp.setEmergencyContactName(rs.getString("emergency_contact_name"));
+                emp.setEmergencyContactPhone(rs.getString("emergency_contact_phone"));
 
                 return emp;
             }
@@ -203,6 +211,7 @@ public class EmployeeDAO {
                 e.setDesignation(rs.getString("designation"));
                 e.setRole(rs.getString("role"));
                 e.setStatus(rs.getString("status"));
+
 
                 list.add(e);
             }
@@ -337,23 +346,157 @@ public class EmployeeDAO {
 
         return list;
     }
-    public void updateEmployeeProfile(int empId, String phone, String address) {
+    public void updateEmployeeProfile(int empId, String phone, String address,
+                                      String emergencyName, String emergencyPhone) {
 
-        String query = "UPDATE employee SET phone = ?, address = ? WHERE employee_id = ?";
+        String sql = "UPDATE employee SET phone=?, address=?, emergency_contact_name=?, emergency_contact_phone=? WHERE employee_id=?";
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, phone);
             ps.setString(2, address);
-            ps.setInt(3, empId);
+            ps.setString(3, emergencyName);
+            ps.setString(4, emergencyPhone);
+            ps.setInt(5, empId);
 
             ps.executeUpdate();
-
-            System.out.println("Profile updated successfully!");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public List<Employee> getEmployeesByManager(int managerId) {
+        List<Employee> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM employee WHERE manager_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, managerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Employee emp = new Employee();
+
+                emp.setEmployeeId(rs.getInt("employee_id"));
+                emp.setName(rs.getString("name"));
+                emp.setEmail(rs.getString("email"));
+                emp.setDepartment(rs.getString("department"));
+                emp.setDesignation(rs.getString("designation"));
+                emp.setEmergencyContactName(rs.getString("emergency_contact_name"));
+                emp.setEmergencyContactPhone(rs.getString("emergency_contact_phone"));
+
+                list.add(emp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    public List<Employee> getUpcomingBirthdays() {
+        List<Employee> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM employee WHERE date_of_birth IS NOT NULL";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Employee e = new Employee();
+
+                e.setEmployeeId(rs.getInt("employee_id"));
+                e.setName(rs.getString("name"));
+                e.setDateOfBirth(rs.getDate("date_of_birth"));
+
+                list.add(e);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    public List<Employee> getWorkAnniversaries() {
+        List<Employee> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM employee WHERE date_of_joining IS NOT NULL";
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Employee e = new Employee();
+
+                e.setEmployeeId(rs.getInt("employee_id"));
+                e.setName(rs.getString("name"));
+                e.setJoiningDate(rs.getDate("date_of_joining"));
+
+                list.add(e);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    public boolean verifyPassword(int empId, String password) {
+        String sql = "SELECT * FROM employee WHERE employee_id=? AND password=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, empId);
+            ps.setString(2, password);
+
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void updatePassword(int empId, String newPassword) {
+        String sql = "UPDATE employee SET password=? WHERE employee_id=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, newPassword);
+            ps.setInt(2, empId);
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public Employee getByEmail(String email) {
+        String sql = "SELECT * FROM employee WHERE email=?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                Employee e = new Employee();
+                e.setEmployeeId(rs.getInt("employee_id"));
+                return e;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -10,6 +10,7 @@ public class Goal {
     private Date deadline;
     private String priority;
     private String status;
+    private String successMetrics;
 
     public int getGoalId() {
         return goalId;
@@ -57,5 +58,13 @@ public class Goal {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getSuccessMetrics() {
+        return successMetrics;
+    }
+
+    public void setSuccessMetrics(String successMetrics) {
+        this.successMetrics = successMetrics;
     }
 }

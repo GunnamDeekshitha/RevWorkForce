@@ -28,4 +28,24 @@ public class AuthService {
 
         return null;
     }
+    public String changePassword(int empId, String oldPass, String newPass) {
+
+        if (!employeeDAO.verifyPassword(empId, oldPass)) {
+            return "Incorrect current password!";
+        }
+
+        employeeDAO.updatePassword(empId, newPass);
+        return "Password updated successfully!";
+    }
+    public String resetPassword(String email, String newPass) {
+
+        Employee emp = employeeDAO.getByEmail(email);
+
+        if (emp == null) {
+            return "Email not found!";
+        }
+
+        employeeDAO.updatePassword(emp.getEmployeeId(), newPass);
+        return "Password reset successfully!";
+    }
 }

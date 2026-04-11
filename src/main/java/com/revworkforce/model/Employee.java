@@ -1,5 +1,7 @@
 package com.revworkforce.model;
 
+import java.util.Date;
+
 public class Employee {
     private int employeeId;
     private String name;
@@ -13,6 +15,12 @@ public class Employee {
     private double salary;
     private String status;
     private int managerId;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+    private Date dateOfBirth;
+    private Date joiningDate;
+
+
 
     public int getEmployeeId() {
         return employeeId;
@@ -108,5 +116,35 @@ public class Employee {
 
     public void setManagerId(int managerId) {
         this.managerId = managerId;
+    }
+    public String getEmergencyContactName() {
+        return emergencyContactName;
+    }
+
+    public void setEmergencyContactName(String emergencyContactName) {
+        this.emergencyContactName = emergencyContactName;
+    }
+
+    public String getEmergencyContactPhone() {
+        return emergencyContactPhone;
+    }
+
+    public void setEmergencyContactPhone(String emergencyContactPhone) {
+        this.emergencyContactPhone = emergencyContactPhone;
+    }
+    public Date getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Date dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public Date getJoiningDate() {
+        return joiningDate;
+    }
+
+    public void setJoiningDate(Date joiningDate) {
+        this.joiningDate = joiningDate;
     }
 }

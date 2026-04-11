@@ -8,12 +8,13 @@ import org.apache.logging.log4j.Logger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.List;
+import java.util.ArrayList;
 
 public class LeaveBalanceDAO {
 
     private static final Logger logger = LogManager.getLogger(LeaveBalanceDAO.class);
 
-    // 🔹 GET LEAVE BALANCE
     public LeaveBalance getLeaveBalance(int empId) {
 
         String query = "SELECT * FROM leave_balance WHERE employee_id = ?";
@@ -31,6 +32,8 @@ public class LeaveBalanceDAO {
                 lb.setCasualLeave(rs.getInt("casual_leave"));
                 lb.setSickLeave(rs.getInt("sick_leave"));
                 lb.setPaidLeave(rs.getInt("paid_leave"));
+                lb.setPrivilegeLeave(rs.getInt("privilege_leave"));
+
 
                 return lb;
             }
@@ -76,7 +79,6 @@ public class LeaveBalanceDAO {
         }
     }
 
-    // 🔹 CHECK IF ENOUGH LEAVE AVAILABLE
     public boolean hasEnoughLeave(int empId, String type, int days) {
 
         LeaveBalance lb = getLeaveBalance(empId);
@@ -93,6 +95,8 @@ public class LeaveBalanceDAO {
                 return lb.getSickLeave() >= days;
             case "PL":
                 return lb.getPaidLeave() >= days;
+            case "PR":
+                return lb.getPrivilegeLeave() >= days;
             default:
                 logger.warn("Invalid leave type checked: " + type);
                 return false;
@@ -105,6 +109,7 @@ public class LeaveBalanceDAO {
         if (type.equalsIgnoreCase("CL")) column = "casual_leave";
         else if (type.equalsIgnoreCase("SL")) column = "sick_leave";
         else if (type.equalsIgnoreCase("PL")) column = "paid_leave";
+        else if (type.equalsIgnoreCase("PR")) column = "privilege_leave";
 
         if (column == null) return;
 
@@ -122,9 +127,9 @@ public class LeaveBalanceDAO {
             e.printStackTrace();
         }
     }
-    public void assignLeaveBalance(int empId, int cl, int sl, int pl) {
+    public void assignLeaveBalance(int empId, int cl, int sl, int pl,int pr) {
 
-        String query = "INSERT INTO leave_balance (employee_id, casual_leave, sick_leave, paid_leave) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO leave_balance (employee_id, casual_leave, sick_leave, paid_leave,privilege_leave) VALUES (?, ?, ?, ?,?)";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
@@ -133,6 +138,7 @@ public class LeaveBalanceDAO {
             ps.setInt(2, cl);
             ps.setInt(3, sl);
             ps.setInt(4, pl);
+            ps.setInt(5, pr);
 
             ps.executeUpdate();
 
@@ -180,6 +186,7 @@ public class LeaveBalanceDAO {
         if (type.equalsIgnoreCase("CL")) column = "casual_leave";
         else if (type.equalsIgnoreCase("SL")) column = "sick_leave";
         else if (type.equalsIgnoreCase("PL")) column = "paid_leave";
+        else if (type.equalsIgnoreCase("PR")) column = "privilege_leave";
 
         if (column == null) {
             System.out.println("Invalid leave type!");
@@ -203,5 +210,35 @@ public class LeaveBalanceDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public List<LeaveBalance> getTeamLeaveBalances(int managerId) {
+        List<LeaveBalance> list = new ArrayList<>();
+
+        String sql = "SELECT lb.* FROM leave_balance lb " +
+                "JOIN employee e ON lb.employee_id = e.employee_id " +
+                "WHERE e.manager_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, managerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                LeaveBalance lb = new LeaveBalance();
+
+                lb.setEmployeeId(rs.getInt("employee_id"));
+                lb.setCasualLeave(rs.getInt("casual_leave"));
+                lb.setSickLeave(rs.getInt("sick_leave"));
+                lb.setPaidLeave(rs.getInt("paid_leave"));
+
+                list.add(lb);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

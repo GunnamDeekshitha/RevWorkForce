@@ -11,29 +11,60 @@ public class MainMenu {
         Scanner sc = new Scanner(System.in);
         AuthService authService = new AuthService();
 
-        System.out.println("==== RevWorkForce Login ====");
+        while (true) {
 
-        System.out.print("Enter Email: ");
-        String email = sc.nextLine();
+            System.out.println("\n==== RevWorkForce ====");
+            System.out.println("1. Login");
+            System.out.println("2. Forgot Password");
+            System.out.println("3. Exit");
 
-        System.out.print("Enter Password: ");
-        String password = sc.nextLine();
+            System.out.print("Enter choice: ");
+            int choice = sc.nextInt();
+            sc.nextLine(); // clear buffer
 
-        Employee emp = authService.login(email, password);
+            switch (choice) {
 
-        if (emp != null) {
-            switch (emp.getRole()) {
-                case "EMPLOYEE":
-                    EmployeeMenu.show(emp);
+                case 1:
+                    System.out.print("Enter Email: ");
+                    String email = sc.nextLine();
+
+                    System.out.print("Enter Password: ");
+                    String password = sc.nextLine();
+
+                    Employee emp = authService.login(email, password);
+
+                    if (emp != null) {
+                        System.out.println("Login Successful!");
+
+                        switch (emp.getRole()) {
+                            case "EMPLOYEE":
+                                EmployeeMenu.show(emp);
+                                break;
+                            case "MANAGER":
+                                ManagerMenu.show(emp);
+                                break;
+                            case "ADMIN":
+                                AdminMenu.show(emp);
+                                break;
+                            default:
+                                System.out.println("Invalid role!");
+                        }
+                    } else {
+                        System.out.println("Invalid credentials!");
+                    }
                     break;
-                case "MANAGER":
-                    ManagerMenu.show(emp);
+                case 2:
+                    System.out.println("Password reset requires admin approval.");
+                    System.out.println("This feature is restricted.");
                     break;
-                case "ADMIN":
-                    AdminMenu.show(emp);
-                    break;
+
+
+                case 3:
+                    System.out.println("Exiting...");
+                    return;
+
                 default:
-                    System.out.println("Invalid role!");
+                    System.out.println("Invalid choice!");
             }
         }
     }
