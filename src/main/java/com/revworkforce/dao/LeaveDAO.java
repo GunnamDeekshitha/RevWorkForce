@@ -8,8 +8,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class LeaveDAO {
+
+    private static final Logger logger = Logger.getLogger(LeaveDAO.class.getName());
 
     // APPLY LEAVE
     public void applyLeave(LeaveRequest leave) {
@@ -19,6 +22,8 @@ public class LeaveDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Applying leave for employee ID: " + leave.getEmployeeId());
+
             ps.setInt(1, leave.getEmployeeId());
             ps.setString(2, leave.getLeaveType());
             ps.setDate(3, leave.getStartDate());
@@ -27,12 +32,12 @@ public class LeaveDAO {
             ps.setString(6, "PENDING");
 
             ps.executeUpdate();
-            System.out.println("Leave applied successfully!");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error applying leave: " + e.getMessage());
         }
     }
+
     public List<LeaveRequest> getAllLeaves() {
 
         List<LeaveRequest> list = new ArrayList<>();
@@ -58,11 +63,12 @@ public class LeaveDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching leaves: " + e.getMessage());
         }
 
         return list;
     }
+
     public void updateLeaveStatus(int leaveId, String status, String comment) {
 
         String query = "UPDATE leave_request SET status = ?, manager_comment = ? WHERE leave_id = ?";
@@ -70,17 +76,19 @@ public class LeaveDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Updating leave status for leave ID: " + leaveId);
+
             ps.setString(1, status);
             ps.setString(2, comment);
             ps.setInt(3, leaveId);
 
             ps.executeUpdate();
-            System.out.println("Leave status updated!");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error updating leave status: " + e.getMessage());
         }
     }
+
     public List<LeaveRequest> getLeavesByEmployeeId(int empId) {
 
         List<LeaveRequest> list = new ArrayList<>();
@@ -88,6 +96,8 @@ public class LeaveDAO {
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Fetching leaves for employee ID: " + empId);
 
             ps.setInt(1, empId);
             ResultSet rs = ps.executeQuery();
@@ -107,17 +117,20 @@ public class LeaveDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching employee leaves: " + e.getMessage());
         }
 
         return list;
     }
+
     public LeaveRequest getLeaveById(int leaveId) {
 
         String query = "SELECT * FROM leave_request WHERE leave_id = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Fetching leave by ID: " + leaveId);
 
             ps.setInt(1, leaveId);
             ResultSet rs = ps.executeQuery();
@@ -136,11 +149,12 @@ public class LeaveDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching leave by ID: " + e.getMessage());
         }
 
         return null;
     }
+
     public void cancelLeave(int leaveId) {
 
         String query = "UPDATE leave_request SET status = 'CANCELLED' WHERE leave_id = ?";
@@ -148,15 +162,15 @@ public class LeaveDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Cancelling leave ID: " + leaveId);
+
             ps.setInt(1, leaveId);
             ps.executeUpdate();
-
-            System.out.println("Leave cancelled successfully!");
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error cancelling leave: " + e.getMessage());
         }
     }
+
     public List<LeaveRequest> getLeavesByManager(int managerId) {
 
         List<LeaveRequest> list = new ArrayList<>();
@@ -167,6 +181,8 @@ public class LeaveDAO {
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Fetching leaves for manager ID: " + managerId);
 
             ps.setInt(1, managerId);
             ResultSet rs = ps.executeQuery();
@@ -184,13 +200,13 @@ public class LeaveDAO {
 
                 list.add(leave);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching manager leaves: " + e.getMessage());
         }
 
         return list;
     }
+
     public void adminCancelLeave(int leaveId) {
 
         String query = "UPDATE leave_request SET status = 'CANCELLED' WHERE leave_id = ?";
@@ -198,21 +214,26 @@ public class LeaveDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Admin cancelling leave ID: " + leaveId);
+
             ps.setInt(1, leaveId);
             ps.executeUpdate();
 
-            System.out.println("Leave cancelled by admin!");
+            logger.info("Leave cancelled by admin");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error cancelling leave by admin: " + e.getMessage());
         }
     }
+
     public void getLeaveStatistics() {
 
         String query = "SELECT status, COUNT(*) as count FROM leave_request GROUP BY status";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Fetching leave statistics");
 
             ResultSet rs = ps.executeQuery();
 
@@ -226,8 +247,7 @@ public class LeaveDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching leave statistics: " + e.getMessage());
         }
     }
-
 }

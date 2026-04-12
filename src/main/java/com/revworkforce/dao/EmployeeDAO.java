@@ -31,10 +31,10 @@ public class EmployeeDAO {
             ps.setDate(11, new java.sql.Date(emp.getJoiningDate().getTime()));
             ps.setString(12, emp.getStatus());
             ps.executeUpdate();
-            logger.info("Employee Added Successfully!");
+
 
         } catch (Exception e) {
-            logger.error("Error while adding employee: " + e.getMessage());
+            logger.warn("Error while adding employee: " + e.getMessage());
         }
     }
 
@@ -115,58 +115,58 @@ public class EmployeeDAO {
         return null;
     }
     public void assignManager(int empId, int managerId) {
-
         String query = "UPDATE employee SET manager_id = ? WHERE employee_id = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Assigning manager");
 
             ps.setInt(1, managerId);
             ps.setInt(2, empId);
 
             ps.executeUpdate();
 
-            System.out.println("Manager assigned successfully!");
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error assigning manager: " + e.getMessage());
         }
     }
+
     public List<Employee> getAllEmployees() {
-
         List<Employee> list = new ArrayList<>();
-
         String query = "SELECT * FROM employee";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Fetching all employees");
+
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 Employee e = new Employee();
-
                 e.setEmployeeId(rs.getInt("employee_id"));
                 e.setName(rs.getString("name"));
                 e.setRole(rs.getString("role"));
-
                 list.add(e);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching employees: " + e.getMessage());
         }
 
         return list;
     }
+
     public List<Employee> searchEmployeeByName(String name) {
 
         List<Employee> list = new ArrayList<>();
-
         String query = "SELECT * FROM employee WHERE name LIKE ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Searching employees by name: " + name);
 
             ps.setString(1, "%" + name + "%");
             ResultSet rs = ps.executeQuery();
@@ -184,7 +184,7 @@ public class EmployeeDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error searching employees by name: " + e.getMessage());
         }
 
         return list;
@@ -192,11 +192,12 @@ public class EmployeeDAO {
     public List<Employee> getAllEmployeeDetails() {
 
         List<Employee> list = new ArrayList<>();
-
         String query = "SELECT * FROM employee";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Fetching all employee details");
 
             ResultSet rs = ps.executeQuery();
 
@@ -212,12 +213,10 @@ public class EmployeeDAO {
                 e.setRole(rs.getString("role"));
                 e.setStatus(rs.getString("status"));
 
-
                 list.add(e);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching employee details: " + e.getMessage());
         }
 
         return list;
@@ -229,6 +228,8 @@ public class EmployeeDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Updating employee ID: " + emp.getEmployeeId());
+
             ps.setString(1, emp.getPhone());
             ps.setString(2, emp.getAddress());
             ps.setString(3, emp.getDepartment());
@@ -237,11 +238,8 @@ public class EmployeeDAO {
             ps.setInt(6, emp.getEmployeeId());
 
             ps.executeUpdate();
-
-            System.out.println("Employee updated successfully!");
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error updating employee: " + e.getMessage());
         }
     }
     public void updateEmployeeStatus(int empId, String status) {
@@ -251,15 +249,17 @@ public class EmployeeDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Updating status for employee ID: " + empId);
+
             ps.setString(1, status);
             ps.setInt(2, empId);
 
             ps.executeUpdate();
 
-            System.out.println("Employee status updated to " + status);
+            logger.info("Employee status updated to " + status);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error updating employee status: " + e.getMessage());
         }
     }
     public Employee searchEmployeeById(int id) {
@@ -268,6 +268,8 @@ public class EmployeeDAO {
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Searching employee by ID: " + id);
 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -285,7 +287,7 @@ public class EmployeeDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error searching employee by ID: " + e.getMessage());
         }
 
         return null;
@@ -293,11 +295,12 @@ public class EmployeeDAO {
     public List<Employee> searchByDepartment(String dept) {
 
         List<Employee> list = new ArrayList<>();
-
         String query = "SELECT * FROM employee WHERE department = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Searching employees by department: " + dept);
 
             ps.setString(1, dept);
             ResultSet rs = ps.executeQuery();
@@ -311,9 +314,8 @@ public class EmployeeDAO {
 
                 list.add(e);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error searching by department: " + e.getMessage());
         }
 
         return list;
@@ -321,11 +323,12 @@ public class EmployeeDAO {
     public List<Employee> searchByDesignation(String designation) {
 
         List<Employee> list = new ArrayList<>();
-
         String query = "SELECT * FROM employee WHERE designation = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Searching employees by designation: " + designation);
 
             ps.setString(1, designation);
             ResultSet rs = ps.executeQuery();
@@ -339,9 +342,8 @@ public class EmployeeDAO {
 
                 list.add(e);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error searching by designation: " + e.getMessage());
         }
 
         return list;
@@ -354,6 +356,8 @@ public class EmployeeDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Updating profile for employee ID: " + empId);
+
             ps.setString(1, phone);
             ps.setString(2, address);
             ps.setString(3, emergencyName);
@@ -361,18 +365,19 @@ public class EmployeeDAO {
             ps.setInt(5, empId);
 
             ps.executeUpdate();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error updating employee profile: " + e.getMessage());
         }
     }
     public List<Employee> getEmployeesByManager(int managerId) {
-        List<Employee> list = new ArrayList<>();
 
+        List<Employee> list = new ArrayList<>();
         String sql = "SELECT * FROM employee WHERE manager_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            logger.info("Fetching employees under manager ID: " + managerId);
 
             ps.setInt(1, managerId);
             ResultSet rs = ps.executeQuery();
@@ -391,19 +396,21 @@ public class EmployeeDAO {
                 list.add(emp);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching employees by manager: " + e.getMessage());
         }
 
         return list;
     }
     public List<Employee> getUpcomingBirthdays() {
-        List<Employee> list = new ArrayList<>();
 
+        List<Employee> list = new ArrayList<>();
         String sql = "SELECT * FROM employee WHERE date_of_birth IS NOT NULL";
 
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
+
+            logger.info("Fetching upcoming birthdays");
 
             while (rs.next()) {
                 Employee e = new Employee();
@@ -414,21 +421,22 @@ public class EmployeeDAO {
 
                 list.add(e);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching birthdays: " + e.getMessage());
         }
 
         return list;
     }
     public List<Employee> getWorkAnniversaries() {
-        List<Employee> list = new ArrayList<>();
 
+        List<Employee> list = new ArrayList<>();
         String sql = "SELECT * FROM employee WHERE date_of_joining IS NOT NULL";
 
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
+
+            logger.info("Fetching work anniversaries");
 
             while (rs.next()) {
                 Employee e = new Employee();
@@ -441,49 +449,60 @@ public class EmployeeDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching anniversaries: " + e.getMessage());
         }
 
         return list;
     }
     public boolean verifyPassword(int empId, String password) {
+
         String sql = "SELECT * FROM employee WHERE employee_id=? AND password=?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Verifying password for employee ID: " + empId);
+
             ps.setInt(1, empId);
             ps.setString(2, password);
 
             ResultSet rs = ps.executeQuery();
-            return rs.next();
+
+            boolean result = rs.next();
+            return result;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error verifying password: " + e.getMessage());
         }
+
         return false;
     }
 
     public void updatePassword(int empId, String newPassword) {
+
         String sql = "UPDATE employee SET password=? WHERE employee_id=?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Updating password for employee ID: " + empId);
+
             ps.setString(1, newPassword);
             ps.setInt(2, empId);
 
             ps.executeUpdate();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error updating password: " + e.getMessage());
         }
     }
     public Employee getByEmail(String email) {
+
         String sql = "SELECT * FROM employee WHERE email=?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            logger.info("Fetching employee ID by email: " + email);
 
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
@@ -495,8 +514,10 @@ public class EmployeeDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching employee by email: " + e.getMessage());
         }
+
         return null;
     }
 }
+

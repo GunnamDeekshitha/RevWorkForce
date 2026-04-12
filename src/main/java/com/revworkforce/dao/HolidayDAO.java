@@ -8,17 +8,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class HolidayDAO {
+
+    private static final Logger logger = Logger.getLogger(HolidayDAO.class.getName());
 
     public List<Holiday> getAllHolidays() {
 
         List<Holiday> list = new ArrayList<>();
-
         String query = "SELECT * FROM holiday ORDER BY holiday_date";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Fetching all holidays");
 
             ResultSet rs = ps.executeQuery();
 
@@ -33,16 +37,19 @@ public class HolidayDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching holidays: " + e.getMessage());
         }
 
         return list;
     }
+
     public void addHoliday(Holiday h) {
         String sql = "INSERT INTO holiday (name, date, description) VALUES (?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            logger.info("Adding holiday: " + h.getHolidayName());
 
             ps.setString(1, h.getHolidayName());
             ps.setDate(2, h.getHolidayDate());
@@ -51,7 +58,7 @@ public class HolidayDAO {
             ps.executeUpdate();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error adding holiday: " + e.getMessage());
         }
     }
 
@@ -61,11 +68,13 @@ public class HolidayDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Deleting holiday with ID: " + id);
+
             ps.setInt(1, id);
             ps.executeUpdate();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error deleting holiday: " + e.getMessage());
         }
     }
 }

@@ -22,6 +22,8 @@ public class LeaveBalanceDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Fetching leave balance for employee ID: " + empId);
+
             ps.setInt(1, empId);
             ResultSet rs = ps.executeQuery();
 
@@ -33,19 +35,16 @@ public class LeaveBalanceDAO {
                 lb.setSickLeave(rs.getInt("sick_leave"));
                 lb.setPaidLeave(rs.getInt("paid_leave"));
                 lb.setPrivilegeLeave(rs.getInt("privilege_leave"));
-
-
                 return lb;
             }
 
         } catch (Exception e) {
-            logger.error("Error fetching leave balance: " + e.getMessage());
+            logger.warn("Error fetching leave balance: " + e.getMessage());
         }
 
         return null;
     }
 
-    // 🔹 UPDATE (DEDUCT) LEAVE BALANCE
     public void updateLeaveBalance(int empId, String type, int days) {
 
         String column = null;
@@ -55,7 +54,6 @@ public class LeaveBalanceDAO {
         else if (type.equalsIgnoreCase("PL")) column = "paid_leave";
 
         if (column == null) {
-            System.out.println("Invalid leave type!");
             logger.warn("Invalid leave type entered: " + type);
             return;
         }
@@ -65,17 +63,14 @@ public class LeaveBalanceDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Updating leave balance for employee ID: " + empId);
+
             ps.setInt(1, days);
             ps.setInt(2, empId);
 
-            int rows = ps.executeUpdate();
-
-            if (rows > 0) {
-                logger.info("Leave balance updated for employee ID: " + empId);
-            }
-
+            ps.executeUpdate();
         } catch (Exception e) {
-            logger.error("Error updating leave balance: " + e.getMessage());
+            logger.warn("Error updating leave balance: " + e.getMessage());
         }
     }
 
@@ -102,6 +97,7 @@ public class LeaveBalanceDAO {
                 return false;
         }
     }
+
     public void restoreLeaveBalance(int empId, String type, int days) {
 
         String column = null;
@@ -111,28 +107,35 @@ public class LeaveBalanceDAO {
         else if (type.equalsIgnoreCase("PL")) column = "paid_leave";
         else if (type.equalsIgnoreCase("PR")) column = "privilege_leave";
 
-        if (column == null) return;
+        if (column == null) {
+            logger.warn("Invalid leave type for restore: " + type);
+            return;
+        }
 
         String query = "UPDATE leave_balance SET " + column + " = " + column + " + ? WHERE employee_id = ?";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Restoring leave balance for employee ID: " + empId);
+
             ps.setInt(1, days);
             ps.setInt(2, empId);
 
             ps.executeUpdate();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error restoring leave balance: " + e.getMessage());
         }
     }
-    public void assignLeaveBalance(int empId, int cl, int sl, int pl,int pr) {
+
+    public void assignLeaveBalance(int empId, int cl, int sl, int pl, int pr) {
 
         String query = "INSERT INTO leave_balance (employee_id, casual_leave, sick_leave, paid_leave,privilege_leave) VALUES (?, ?, ?, ?,?)";
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
+
+            logger.info("Assigning leave balance for employee ID: " + empId);
 
             ps.setInt(1, empId);
             ps.setInt(2, cl);
@@ -142,43 +145,11 @@ public class LeaveBalanceDAO {
 
             ps.executeUpdate();
 
-            System.out.println("Leave balance assigned successfully!");
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error assigning leave balance: " + e.getMessage());
         }
     }
-//    public void adjustLeaveBalance(int empId, String type, int days, boolean isAdd) {
-//
-//        String column = null;
-//
-//        if (type.equalsIgnoreCase("CL")) column = "casual_leave";
-//        else if (type.equalsIgnoreCase("SL")) column = "sick_leave";
-//        else if (type.equalsIgnoreCase("PL")) column = "paid_leave";
-//
-//        if (column == null) {
-//            System.out.println("Invalid leave type!");
-//            return;
-//        }
-//
-//        String operator = isAdd ? "+" : "-";
-//
-//        String query = "UPDATE leave_balance SET " + column + " = " + column + " " + operator + " ? WHERE employee_id = ?";
-//
-//        try (Connection con = DBConnection.getConnection();
-//             PreparedStatement ps = con.prepareStatement(query)) {
-//
-//            ps.setInt(1, days);
-//            ps.setInt(2, empId);
-//
-//            ps.executeUpdate();
-//
-//            System.out.println("Leave balance adjusted successfully!");
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+
     public void adjustLeaveBalance(int empId, String type, int days, boolean isAdd) {
 
         String column = null;
@@ -189,7 +160,7 @@ public class LeaveBalanceDAO {
         else if (type.equalsIgnoreCase("PR")) column = "privilege_leave";
 
         if (column == null) {
-            System.out.println("Invalid leave type!");
+            logger.warn("Invalid leave type for adjustment: " + type);
             return;
         }
 
@@ -200,17 +171,18 @@ public class LeaveBalanceDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(query)) {
 
+            logger.info("Adjusting leave balance for employee ID: " + empId);
+
             ps.setInt(1, days);
             ps.setInt(2, empId);
 
             ps.executeUpdate();
 
-            System.out.println("Leave balance adjusted successfully!");
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error adjusting leave balance: " + e.getMessage());
         }
     }
+
     public List<LeaveBalance> getTeamLeaveBalances(int managerId) {
         List<LeaveBalance> list = new ArrayList<>();
 
@@ -220,6 +192,8 @@ public class LeaveBalanceDAO {
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            logger.info("Fetching team leave balances for manager ID: " + managerId);
 
             ps.setInt(1, managerId);
             ResultSet rs = ps.executeQuery();
@@ -234,9 +208,8 @@ public class LeaveBalanceDAO {
 
                 list.add(lb);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn("Error fetching team leave balances: " + e.getMessage());
         }
 
         return list;

@@ -5,8 +5,11 @@ import com.revworkforce.util.DBConnection;
 
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class NotificationDAO {
+
+    private static final Logger logger = Logger.getLogger(NotificationDAO.class.getName());
 
     public void addNotification(Notification n) {
         String sql = "INSERT INTO notifications (employee_id, message, status) VALUES (?, ?, ?)";
@@ -14,14 +17,15 @@ public class NotificationDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Adding notification for employee ID: " + n.getEmployeeId());
+
             ps.setInt(1, n.getEmployeeId());
             ps.setString(2, n.getMessage());
             ps.setString(3, "UNREAD");
 
             ps.executeUpdate();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error adding notification: " + e.getMessage());
         }
     }
 
@@ -32,6 +36,8 @@ public class NotificationDAO {
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            logger.info("Fetching notifications for employee ID: " + empId);
 
             ps.setInt(1, empId);
             ResultSet rs = ps.executeQuery();
@@ -47,9 +53,8 @@ public class NotificationDAO {
 
                 list.add(n);
             }
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching notifications: " + e.getMessage());
         }
 
         return list;
@@ -61,13 +66,19 @@ public class NotificationDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Fetching unread notification count for employee ID: " + empId);
+
             ps.setInt(1, empId);
             ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                logger.info("Unread count fetched: " + count);
+                return count;
+            }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching unread count: " + e.getMessage());
         }
 
         return 0;
@@ -79,11 +90,15 @@ public class NotificationDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Marking all notifications as read for employee ID: " + empId);
+
             ps.setInt(1, empId);
             ps.executeUpdate();
 
+            logger.info("Notifications marked as read");
+
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error updating notifications: " + e.getMessage());
         }
     }
 }

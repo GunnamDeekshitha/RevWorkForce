@@ -5,319 +5,271 @@ import com.revworkforce.service.*;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 public class EmployeeMenu {
+
+    private static final Logger logger = Logger.getLogger(EmployeeMenu.class.getName());
 
     public static void show(Employee emp) {
         Scanner sc = new Scanner(System.in);
         EmployeeService service = new EmployeeService();
         AuthService authService = new AuthService();
+
         int unread = service.getUnreadCount(emp.getEmployeeId());
         System.out.println("Unread Notifications: " + unread);
 
-
         while (true) {
-            System.out.println("\nWelcome Employee: " + emp.getName());
-            System.out.println("1. View Profile");
-            System.out.println("2. Apply Leave");
-            System.out.println("3. View My Leaves");
-            System.out.println("4. View Leave Balance");
-            System.out.println("5. Cancel Leave");
-            System.out.println("6. Edit Profile");
-            System.out.println("7. View Manager Details");
-            System.out.println("8. View Holiday Calendar");
-            System.out.println("9. View Employee Directory");
-            System.out.println("10. Submit Performance Review");
-            System.out.println("11. View Performance Reviews");
-            System.out.println("12. Add Goal");
-            System.out.println("13. View Goals");
-            System.out.println("14. Update Goal Status");
-            System.out.println("15. View Announcements");
-            System.out.println("16. View Birthdays");
-            System.out.println("17. View Work Anniversaries");
-            System.out.println("18. View Notifications");
-            System.out.println("19. Change Password");
-            System.out.println("20. Logout");
+            try {
+                System.out.println("\nWelcome Employee: " + emp.getName());
+                System.out.println("1. View Profile");
+                System.out.println("2. Apply Leave");
+                System.out.println("3. View My Leaves");
+                System.out.println("4. View Leave Balance");
+                System.out.println("5. Cancel Leave");
+                System.out.println("6. Edit Profile");
+                System.out.println("7. View Manager Details");
+                System.out.println("8. View Holiday Calendar");
+                System.out.println("9. View Employee Directory");
+                System.out.println("10. Submit Performance Review");
+                System.out.println("11. View Performance Reviews");
+                System.out.println("12. Add Goal");
+                System.out.println("13. View Goals");
+                System.out.println("14. Update Goal Status");
+                System.out.println("15. View Announcements");
+                System.out.println("16. View Birthdays");
+                System.out.println("17. View Work Anniversaries");
+                System.out.println("18. View Notifications");
+                System.out.println("19. Change Password");
+                System.out.println("20. Logout");
 
-            int choice = sc.nextInt();
-            sc.nextLine();
-            switch (choice) {
-                case 1:
-                    Employee e = service.getProfile(emp.getEmployeeId());
-                    if (e != null) {
-                        System.out.println("Name: " + e.getName());
-                        System.out.println("Email: " + e.getEmail());
-                        System.out.println("Phone: " + e.getPhone());
-                        System.out.println("Department: " + e.getDepartment());
-                        System.out.println("Designation: " + e.getDesignation());
-                        System.out.println("Emergency Contact Name: " + e.getEmergencyContactName());
-                        System.out.println("Emergency Contact Phone: " + e.getEmergencyContactPhone());
-                    }
-                    break;
-                case 2:
-                    Employee manager = service.getManager(emp.getManagerId());
-                    if (manager != null) {
-                        System.out.println("Reporting Manager: " + manager.getName());
-                        System.out.println("Manager Email: " + manager.getEmail());
-                    }
-                    LeaveRequest leave = new LeaveRequest();
-                    leave.setEmployeeId(emp.getEmployeeId());
-                    System.out.print("Enter Leave Type (CL/SL/PL/PR): ");
-                    leave.setLeaveType(sc.nextLine());
-                    System.out.print("Enter Start Date (YYYY-MM-DD): ");
-                    leave.setStartDate(java.sql.Date.valueOf(sc.nextLine()));
-                    System.out.print("Enter End Date (YYYY-MM-DD): ");
-                    leave.setEndDate(java.sql.Date.valueOf(sc.nextLine()));
-                    System.out.print("Enter Reason: ");
-                    leave.setReason(sc.nextLine());
-                    String result = service.applyLeave(emp, leave);
-                    System.out.println(result);
-                    break;
-                case 3:
-                    List<LeaveRequest> leaves = service.getMyLeaves(emp.getEmployeeId());
-                    for (LeaveRequest l : leaves) {
-                        System.out.println("Leave ID: " + l.getLeaveId());
-                        System.out.println("Type: " + l.getLeaveType());
-                        System.out.println("From: " + l.getStartDate());
-                        System.out.println("To: " + l.getEndDate());
-                        System.out.println("Reason: " + l.getReason());
-                        System.out.println("Status: " + l.getStatus());
-                        System.out.println("Manager Comment: " + l.getManagerComment());
-                        System.out.println("----------------------");
-                    }
-                    break;
-                case 4:
-                    LeaveBalance lb = service.getLeaveBalance(emp.getEmployeeId());
-                    if (lb != null) {
-                        System.out.println("Casual Leave: " + lb.getCasualLeave());
-                        System.out.println("Sick Leave: " + lb.getSickLeave());
-                        System.out.println("Paid Leave: " + lb.getPaidLeave());
-                        System.out.println("Privilege Leave: " + lb.getPrivilegeLeave());
-                    } else {
-                        System.out.println("No leave balance found!");
-                    }
-                    break;
-                case 5:
-                    System.out.print("Enter Leave ID to cancel: ");
-                    int leaveId = sc.nextInt();
-                    sc.nextLine();
-                    String msg = service.cancelLeave(emp.getEmployeeId(), leaveId);
-                    System.out.println(msg);
-                    break;
+                int choice = sc.nextInt();
+                sc.nextLine();
 
-                case 6:
-                    System.out.print("Enter new phone (press Enter to skip): ");
-                    String phone = sc.nextLine();
+                switch (choice) {
 
-                    System.out.print("Enter new address (press Enter to skip): ");
-                    String address = sc.nextLine();
-
-                    System.out.print("Enter emergency contact name (press Enter to skip): ");
-                    String eName = sc.nextLine();
-
-                    System.out.print("Enter emergency contact phone (press Enter to skip): ");
-                    String ePhone = sc.nextLine();
-                    if (!phone.isEmpty() && !phone.matches("\\d{10}")) {
-                        System.out.println("Invalid phone number! Must be 10 digits.");
-                        break;
-                    }
-
-                    if (!ePhone.isEmpty() && !phone.matches("\\d{10}")) {
-                        System.out.println("Invalid emergency phone!");
-                        break;
-                    }
-                    service.updateProfile(emp.getEmployeeId(), phone, address, eName, ePhone);
-                    System.out.println("Profile updated!");
-                    break;
-                case 7:
-                    if (emp.getManagerId() == 0) {
-                        System.out.println("No manager assigned!");
-                        break;
-                    }
-
-                    Employee mgr = service.getManager(emp.getManagerId());
-
-                    if (mgr != null) {
-                        System.out.println("Manager Name: " + mgr.getName());
-                        System.out.println("Manager Email: " + mgr.getEmail());
-                        System.out.println("Department: " + mgr.getDepartment());
-                    } else {
-                        System.out.println("Manager not found!");
-                    }
-                    break;
-                case 8:
-                    List<Holiday> holidays = service.getHolidays();
-
-                    System.out.println("=== Company Holidays ===");
-
-                    for (Holiday h : holidays) {
-                        System.out.println(h.getHolidayDate() + " - " + h.getHolidayName());
-                    }
-                    break;
-                case 9:
-                    List<Employee> employees = service.getAllEmployees();
-
-                    System.out.println("=== Employee Directory ===");
-
-                    for (Employee ee : employees) {
-                        System.out.println("Name: " + ee.getName());
-                        System.out.println("Email: " + ee.getEmail());
-                        System.out.println("Department: " + ee.getDepartment());
-                        System.out.println("Designation: " + ee.getDesignation());
-                        System.out.println("----------------------");
-                    }
-                    break;
-                case 10:
-                    PerformanceReview review = new PerformanceReview();
-
-                    review.setEmployeeId(emp.getEmployeeId());
-
-                    System.out.print("Enter year: ");
-                    review.setYear(sc.nextInt());
-                    sc.nextLine();
-
-                    System.out.print("Enter self assessment: ");
-                    review.setSelfAssessment(sc.nextLine());
-
-                    System.out.print("Enter accomplishments: ");
-                    review.setAccomplishments(sc.nextLine());
-
-                    System.out.print("Enter improvements: ");
-                    review.setImprovements(sc.nextLine());
-
-                    System.out.print("Enter rating (1-5): ");
-                    review.setRating(sc.nextInt());
-                    sc.nextLine();
-
-                    service.submitReview(review);
-                    System.out.println("Review submitted!");
-                    break;
-
-                case 11:
-                    List<PerformanceReview> reviews = service.getReviews(emp.getEmployeeId());
-
-                    if (reviews.isEmpty()) {
-                        System.out.println("No reviews found!");
-                    } else {
-                        for (PerformanceReview r : reviews) {
-                            System.out.println("Year: " + r.getYear());
-                            System.out.println("Self Assessment: " + r.getSelfAssessment());
-                            System.out.println("Accomplishments: " + r.getAccomplishments());
-                            System.out.println("Improvements: " + r.getImprovements());
-                            System.out.println("Rating: " + r.getRating());
-                            System.out.println("Manager Feedback: " + r.getManagerFeedback());
-                            System.out.println("----------------------");
+                    case 1:
+                        try {
+                            logger.info("View Profile");
+                            Employee e = service.getProfile(emp.getEmployeeId());
+                            if (e != null) {
+                                System.out.println(e.getName());
+                            }
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
                         }
-                    }
-                    break;
+                        break;
 
-                // 🔹 ADD GOAL
-                case 12:
-                    Goal goal = new Goal();
+                    case 2:
+                        try {
+                            logger.info("Apply Leave");
+                            LeaveRequest leave = new LeaveRequest();
+                            leave.setEmployeeId(emp.getEmployeeId());
 
-                    goal.setEmployeeId(emp.getEmployeeId());
+                            leave.setLeaveType(sc.nextLine());
+                            leave.setStartDate(java.sql.Date.valueOf(sc.nextLine()));
+                            leave.setEndDate(java.sql.Date.valueOf(sc.nextLine()));
+                            leave.setReason(sc.nextLine());
 
-                    System.out.print("Enter goal description: ");
-                    goal.setDescription(sc.nextLine());
+                            System.out.println(service.applyLeave(emp, leave));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.print("Enter deadline (YYYY-MM-DD): ");
-                    goal.setDeadline(java.sql.Date.valueOf(sc.nextLine()));
+                    case 3:
+                        try {
+                            logger.info("View Leaves");
+                            service.getMyLeaves(emp.getEmployeeId())
+                                    .forEach(l -> System.out.println(l.getLeaveId()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.print("Enter priority (HIGH/MEDIUM/LOW): ");
-                    goal.setPriority(sc.nextLine());
+                    case 4:
+                        try {
+                            logger.info("View Leave Balance");
+                            LeaveBalance lb = service.getLeaveBalance(emp.getEmployeeId());
+                            if (lb != null) System.out.println(lb.getCasualLeave());
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    service.addGoal(goal);
-                    System.out.println("Goal added!");
+                    case 5:
+                        try {
+                            logger.info("Cancel Leave");
+                            int id = sc.nextInt();
+                            System.out.println(service.cancelLeave(emp.getEmployeeId(), id));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.print("Enter Success Metrics: ");
-                    goal.setSuccessMetrics(sc.nextLine());
-                    break;
+                    case 6:
+                        try {
+                            logger.info("Edit Profile");
+                            service.updateProfile(emp.getEmployeeId(),
+                                    sc.nextLine(), sc.nextLine(),
+                                    sc.nextLine(), sc.nextLine());
+                            System.out.println("Updated!");
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                // 🔹 VIEW GOALS
-                case 13:
-                    List<Goal> goals = service.getGoals(emp.getEmployeeId());
+                    case 7:
+                        try {
+                            logger.info("View Manager");
+                            Employee mgr = service.getManager(emp.getManagerId());
+                            if (mgr != null) System.out.println(mgr.getName());
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    for (Goal g : goals) {
-                        System.out.println("Goal ID: " + g.getGoalId());
-                        System.out.println("Description: " + g.getDescription());
-                        System.out.println("Deadline: " + g.getDeadline());
-                        System.out.println("Priority: " + g.getPriority());
-                        System.out.println("Status: " + g.getStatus());
-                        System.out.println("Success Metrics: " + g.getSuccessMetrics());
-                        System.out.println("----------------------");
-                    }
-                    break;
-                case 14:
-                    System.out.print("Enter Goal ID: ");
-                    int goalId = sc.nextInt();
-                    sc.nextLine();
+                    case 8:
+                        try {
+                            logger.info("View Holidays");
+                            service.getHolidays().forEach(h -> System.out.println(h.getHolidayName()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.print("Enter new status (PENDING/IN_PROGRESS/COMPLETED): ");
-                    String status = sc.nextLine();
+                    case 9:
+                        try {
+                            logger.info("Employee Directory");
+                            service.getAllEmployees().forEach(e -> System.out.println(e.getName()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    service.updateGoalStatus(goalId, status);
-                    System.out.println("Goal updated!");
-                    break;
-                case 15:
-                    List<Announcement> list = service.getAnnouncements();
+                    case 10:
+                        try {
+                            logger.info("Submit Review");
+                            PerformanceReview r = new PerformanceReview();
+                            r.setEmployeeId(emp.getEmployeeId());
+                            r.setYear(sc.nextInt()); sc.nextLine();
+                            r.setSelfAssessment(sc.nextLine());
+                            r.setAccomplishments(sc.nextLine());
+                            r.setImprovements(sc.nextLine());
+                            r.setRating(sc.nextInt()); sc.nextLine();
 
-                    System.out.println("=== Announcements ===");
+                            service.submitReview(r);
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    for (Announcement a : list) {
-                        System.out.println("Title: " + a.getTitle());
-                        System.out.println("Message: " + a.getMessage());
-                        System.out.println("Date: " + a.getCreatedAt());
-                        System.out.println("----------------------");
-                    }
-                    break;
-                case 16:
-                    List<Employee> birthdays = service.getBirthdays();
+                    case 11:
+                        try {
+                            logger.info("View Reviews");
+                            service.getReviews(emp.getEmployeeId())
+                                    .forEach(r -> System.out.println(r.getYear()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.println("=== Upcoming Birthdays ===");
+                    case 12:
+                        try {
+                            logger.info("Add Goal");
+                            Goal g = new Goal();
+                            g.setEmployeeId(emp.getEmployeeId());
+                            g.setDescription(sc.nextLine());
+                            g.setDeadline(java.sql.Date.valueOf(sc.nextLine()));
+                            g.setPriority(sc.nextLine());
 
-                    for (Employee eb : birthdays) {
-                        System.out.println(eb.getName() + " - " + eb.getDateOfBirth());
-                    }
-                    break;
+                            service.addGoal(g);
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                case 17:
-                    List<Employee> anniversaries = service.getAnniversaries();
+                    case 13:
+                        try {
+                            logger.info("View Goals");
+                            service.getGoals(emp.getEmployeeId())
+                                    .forEach(g -> System.out.println(g.getDescription()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.println("=== Work Anniversaries ===");
+                    case 14:
+                        try {
+                            logger.info("Update Goal");
+                            service.updateGoalStatus(sc.nextInt(), sc.nextLine());
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    for (Employee ea : anniversaries) {
-                        System.out.println(ea.getName() + " - " + ea.getJoiningDate());
-                    }
-                    break;
-                case 18:
-                    List<Notification> notes = service.getNotifications(emp.getEmployeeId());
+                    case 15:
+                        try {
+                            logger.info("Announcements");
+                            service.getAnnouncements().forEach(a -> System.out.println(a.getTitle()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    for (Notification n : notes) {
-                        System.out.println("Message: " + n.getMessage());
-                        System.out.println("Status: " + n.getStatus());
-                        System.out.println("Date: " + n.getCreatedAt());
-                        System.out.println("----------------------");
-                    }
+                    case 16:
+                        try {
+                            logger.info("Birthdays");
+                            service.getBirthdays().forEach(e -> System.out.println(e.getName()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    service.markNotificationsRead(emp.getEmployeeId());
-                    break;
-                case 19:
-                    System.out.print("Enter current password: ");
-                    String oldPass = sc.nextLine();
+                    case 17:
+                        try {
+                            logger.info("Anniversaries");
+                            service.getAnniversaries().forEach(e -> System.out.println(e.getName()));
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    System.out.print("Enter new password: ");
-                    String newPass = sc.nextLine();
+                    case 18:
+                        try {
+                            logger.info("Notifications");
+                            service.getNotifications(emp.getEmployeeId())
+                                    .forEach(n -> System.out.println(n.getMessage()));
+                            service.markNotificationsRead(emp.getEmployeeId());
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
 
-                    String msgg = authService.changePassword(emp.getEmployeeId(), oldPass, newPass);
-                    System.out.println(msgg);
-                    break;
-                case 20:
-                    System.out.println("Logged out!");
-                    return;
-                default:
-                    System.out.println("Invalid choice!");
+                    case 19:
+                        try {
+                            logger.info("Change Password");
+                            String msg = authService.changePassword(emp.getEmployeeId(),
+                                    sc.nextLine(), sc.nextLine());
+                            System.out.println(msg);
+                        } catch (Exception ex) {
+                            logger.warning(ex.getMessage());
+                        }
+                        break;
+
+                    case 20:
+                        logger.info("Logout");
+                        System.out.println("Logged out!");
+                        return;
+
+                    default:
+                        System.out.println("Invalid!");
+                }
+
+            } catch (Exception e) {
+                logger.warning("Menu error: " + e.getMessage());
+                sc.nextLine();
             }
-
         }
     }
 }

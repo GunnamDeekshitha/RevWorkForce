@@ -5,8 +5,11 @@ import com.revworkforce.util.DBConnection;
 
 import java.sql.*;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class DepartmentDAO {
+
+    private static final Logger logger = Logger.getLogger(DepartmentDAO.class.getName());
 
     public void addDepartment(String name) {
         String sql = "INSERT INTO department (dept_name) VALUES (?)";
@@ -14,11 +17,12 @@ public class DepartmentDAO {
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            logger.info("Adding department: " + name);
+
             ps.setString(1, name);
             ps.executeUpdate();
-
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error adding department: " + e.getMessage());
         }
     }
 
@@ -30,7 +34,6 @@ public class DepartmentDAO {
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
-
             while (rs.next()) {
                 Department d = new Department();
                 d.setDeptId(rs.getInt("dept_id"));
@@ -39,7 +42,7 @@ public class DepartmentDAO {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warning("Error fetching departments: " + e.getMessage());
         }
 
         return list;
