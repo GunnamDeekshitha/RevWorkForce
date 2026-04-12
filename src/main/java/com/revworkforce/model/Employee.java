@@ -20,8 +20,6 @@ public class Employee {
     private Date dateOfBirth;
     private Date joiningDate;
 
-
-
     public int getEmployeeId() {
         return employeeId;
     }

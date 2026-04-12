@@ -11,8 +11,6 @@ public class PerformanceReview {
     private int rating;
     private String managerFeedback;
 
-    // getters and setters
-
     public int getReviewId() { return reviewId; }
     public void setReviewId(int reviewId) { this.reviewId = reviewId; }
 

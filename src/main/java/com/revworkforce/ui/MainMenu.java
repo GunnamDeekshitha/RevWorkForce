@@ -2,25 +2,21 @@ package com.revworkforce.ui;
 
 import com.revworkforce.model.Employee;
 import com.revworkforce.service.AuthService;
-
 import java.util.Scanner;
 import java.util.logging.Logger;
 
 public class MainMenu {
 
     private static final Logger logger = Logger.getLogger(MainMenu.class.getName());
-
     public static void start() {
         Scanner sc = new Scanner(System.in);
         AuthService authService = new AuthService();
-
         while (true) {
             try {
                 System.out.println("\n==== RevWorkForce ====");
                 System.out.println("1. Login");
                 System.out.println("2. Forgot Password");
                 System.out.println("3. Exit");
-
                 System.out.print("Enter choice: ");
                 int choice = sc.nextInt();
                 sc.nextLine();

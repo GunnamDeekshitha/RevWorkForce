@@ -12,11 +12,9 @@ import java.util.logging.Logger;
 public class AdminMenu {
 
     private static final Logger logger = Logger.getLogger(AdminMenu.class.getName());
-
     public static void show(Employee emp) {
         Scanner sc = new Scanner(System.in);
         AdminService service = new AdminService();
-
         while (true) {
             try {
                 System.out.println("\nWelcome Admin: " + emp.getName());
@@ -44,7 +42,6 @@ public class AdminMenu {
                 sc.nextLine();
 
                 switch (choice) {
-
                     case 1:
                         try {
                             logger.info("Add Employee");
@@ -101,10 +98,8 @@ public class AdminMenu {
                             for (Employee e : employees) {
                                 System.out.println(e.getEmployeeId() + " - " + e.getName());
                             }
-
                             int empId = sc.nextInt();
                             int managerId = sc.nextInt();
-
                             service.assignManager(empId, managerId);
                             System.out.println("Manager assigned!");
                         } catch (Exception e) {
@@ -116,11 +111,9 @@ public class AdminMenu {
                     case 3:
                         try {
                             logger.info("Search Employee");
-
                             System.out.println("1.Name 2.ID 3.Dept 4.Designation");
                             int s = sc.nextInt();
                             sc.nextLine();
-
                             switch (s) {
                                 case 1:
                                     service.searchByName(sc.nextLine())
@@ -159,13 +152,10 @@ public class AdminMenu {
                     case 5:
                         try {
                             logger.info("Update Employee");
-
                             int id = sc.nextInt();
                             sc.nextLine();
-
                             Employee upd = new Employee();
                             upd.setEmployeeId(id);
-
                             upd.setPhone(sc.nextLine());
                             upd.setAddress(sc.nextLine());
                             upd.setDepartment(sc.nextLine());
