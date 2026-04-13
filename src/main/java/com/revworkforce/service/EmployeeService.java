@@ -4,6 +4,7 @@ import com.revworkforce.dao.*;
 import com.revworkforce.model.*;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.Date;
 
 public class EmployeeService {
     private static final Logger logger = Logger.getLogger(EmployeeService.class.getName());
@@ -97,22 +98,59 @@ public class EmployeeService {
     }
 
     public String applyLeave(Employee emp, LeaveRequest leave) {
+
         logger.info("Applying leave for employee");
+
+
         if (emp == null || leave == null) {
             logger.warning("Employee or leave is null");
             throw new RuntimeException("Invalid input");
         }
+
+
+        if (leave.getStartDate() == null || leave.getEndDate() == null) {
+            logger.warning("Leave dates are null");
+            throw new RuntimeException("Leave dates cannot be null");
+        }
+
+        Date today = new Date();
+
+
+        if (leave.getStartDate().before(today)) {
+            logger.warning("Start date is in the past");
+            return "Cannot apply leave for past dates!";
+        }
+
+
+        if (leave.getEndDate().before(leave.getStartDate())) {
+            logger.warning("End date is before start date");
+            throw new RuntimeException("Invalid date range");
+        }
+
+
         int days = (int) ((leave.getEndDate().getTime() - leave.getStartDate().getTime())
                 / (1000 * 60 * 60 * 24)) + 1;
+
+
         if (leaveBalanceDAO.hasEnoughLeave(emp.getEmployeeId(), leave.getLeaveType(), days)) {
+
             leaveDAO.applyLeave(leave);
-            leaveBalanceDAO.updateLeaveBalance(emp.getEmployeeId(), leave.getLeaveType(), days);
+
+            leaveBalanceDAO.updateLeaveBalance(
+                    emp.getEmployeeId(),
+                    leave.getLeaveType(),
+                    days
+            );
+
             Notification n = new Notification();
             n.setEmployeeId(emp.getManagerId());
             n.setMessage("New leave request from " + emp.getName());
+
             notificationDAO.addNotification(n);
+
             logger.info("Leave applied successfully");
             return "Leave applied successfully!";
+
         } else {
             logger.warning("Not enough leave balance");
             return "Not enough leave balance!";

@@ -13,14 +13,13 @@ public class MainMenu {
         AuthService authService = new AuthService();
         while (true) {
             try {
-                System.out.println("\n==== RevWorkForce ====");
+                System.out.println("\n Welcome to RevWorkForce ");
                 System.out.println("1. Login");
                 System.out.println("2. Forgot Password");
                 System.out.println("3. Exit");
                 System.out.print("Enter choice: ");
                 int choice = sc.nextInt();
                 sc.nextLine();
-
                 switch (choice) {
 
                     case 1:
@@ -30,8 +29,6 @@ public class MainMenu {
 
                             System.out.print("Enter Password: ");
                             String password = sc.nextLine();
-
-                            // 🔥 LOG AFTER INPUT (FIX)
                             logger.info("Login attempt for email: " + email);
 
                             Employee emp = authService.login(email, password);

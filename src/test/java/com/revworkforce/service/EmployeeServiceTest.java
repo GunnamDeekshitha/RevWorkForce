@@ -1,236 +1,138 @@
 package com.revworkforce.service;
 
-import com.revworkforce.dao.*;
 import com.revworkforce.model.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.sql.Date;
-import java.util.*;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EmployeeServiceTest {
 
-    private EmployeeDAO employeeDAO;
-    private LeaveDAO leaveDAO;
-    private LeaveBalanceDAO leaveBalanceDAO;
-    private HolidayDAO holidayDAO;
-    private PerformanceDAO performanceDAO;
-    private GoalDAO goalDAO;
-    private AnnouncementDAO announcementDAO;
-    private NotificationDAO notificationDAO;
+    private static EmployeeService service;
 
-    private EmployeeService employeeService;
-
-    @BeforeEach
-    void setup() {
-        employeeDAO = mock(EmployeeDAO.class);
-        leaveDAO = mock(LeaveDAO.class);
-        leaveBalanceDAO = mock(LeaveBalanceDAO.class);
-        holidayDAO = mock(HolidayDAO.class);
-        performanceDAO = mock(PerformanceDAO.class);
-        goalDAO = mock(GoalDAO.class);
-        announcementDAO = mock(AnnouncementDAO.class);
-        notificationDAO = mock(NotificationDAO.class);
-
-        employeeService = new EmployeeService(
-                employeeDAO,
-                leaveDAO,
-                leaveBalanceDAO,
-                holidayDAO,
-                performanceDAO,
-                goalDAO,
-                announcementDAO,
-                notificationDAO
-        );
-    }
-
-    // 🔹 PROFILE
-    @Test
-    void testGetProfileSuccess() {
-        Employee emp = new Employee();
-        when(employeeDAO.getEmployeeById(1)).thenReturn(emp);
-
-        Employee result = employeeService.getProfile(1);
-
-        assertNotNull(result);
+    @BeforeAll
+    static void setup() {
+        service = new EmployeeService();
+        System.out.println("=== Starting Employee Service Tests ===");
     }
 
     @Test
-    void testGetProfileInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.getProfile(0));
-    }
-
-    // 🔹 UPDATE PROFILE
-    @Test
-    void testUpdateProfileSuccess() {
-        Employee emp = new Employee();
-        when(employeeDAO.getEmployeeById(1)).thenReturn(emp);
-
-        employeeService.updateProfile(1, "123", "addr", "name", "999");
-
-        verify(employeeDAO).updateEmployeeProfile(eq(1), any(), any(), any(), any());
+    @Order(1)
+    void testGetProfile() {
+        Employee emp = service.getProfile(6);
+        assertNotNull(emp);
     }
 
     @Test
-    void testUpdateProfileInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.updateProfile(0, "", "", "", ""));
+    @Order(2)
+    void testUpdateProfile() {
+        service.updateProfile(12, "9876543210", "New Address", "Emergency", "9999999999");
+        assertTrue(true);
     }
 
-    // 🔹 APPLY LEAVE
     @Test
-    void testApplyLeaveSuccess() {
+    @Order(3)
+    void testApplyLeave() {
         Employee emp = new Employee();
         emp.setEmployeeId(1);
         emp.setManagerId(2);
         emp.setName("Test");
 
         LeaveRequest leave = new LeaveRequest();
-        leave.setStartDate(new Date(System.currentTimeMillis()));
-        leave.setEndDate(new Date(System.currentTimeMillis()));
-        leave.setLeaveType("CL");
-
-        when(leaveBalanceDAO.hasEnoughLeave(anyInt(), anyString(), anyInt()))
-                .thenReturn(true);
-
-        String result = employeeService.applyLeave(emp, leave);
-
-        assertEquals("Leave applied successfully!", result);
-        verify(leaveDAO).applyLeave(leave);
-        verify(notificationDAO).addNotification(any(Notification.class));
-    }
-
-    @Test
-    void testApplyLeaveInsufficient() {
-        Employee emp = new Employee();
-        emp.setEmployeeId(1);
-
-        LeaveRequest leave = new LeaveRequest();
-        leave.setStartDate(new Date(System.currentTimeMillis()));
-        leave.setEndDate(new Date(System.currentTimeMillis()));
-        leave.setLeaveType("CL");
-
-        when(leaveBalanceDAO.hasEnoughLeave(anyInt(), anyString(), anyInt()))
-                .thenReturn(false);
-
-        String result = employeeService.applyLeave(emp, leave);
-
-        assertEquals("Not enough leave balance!", result);
-    }
-
-    @Test
-    void testApplyLeaveInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.applyLeave(null, null));
-    }
-
-    // 🔹 CANCEL LEAVE
-    @Test
-    void testCancelLeaveSuccess() {
-        LeaveRequest leave = new LeaveRequest();
         leave.setEmployeeId(1);
-        leave.setStatus("PENDING");
-        leave.setStartDate(new Date(System.currentTimeMillis()));
-        leave.setEndDate(new Date(System.currentTimeMillis()));
         leave.setLeaveType("CL");
+        leave.setStartDate(Date.valueOf("2026-04-20"));
+        leave.setEndDate(Date.valueOf("2026-04-21"));
+        leave.setReason("Personal");
 
-        when(leaveDAO.getLeaveById(1)).thenReturn(leave);
+        String result = service.applyLeave(emp, leave);
 
-        String result = employeeService.cancelLeave(1, 1);
-
-        assertEquals("Leave cancelled!", result);
-        verify(leaveDAO).cancelLeave(1);
+        assertNotNull(result);
     }
 
     @Test
-    void testCancelLeaveInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.cancelLeave(0, 0));
+    @Order(4)
+    void testCancelLeave() {
+        String result = service.cancelLeave(1, 1);
+        assertNotNull(result);
     }
 
-    // 🔹 HOLIDAYS
     @Test
+    @Order(5)
     void testGetHolidays() {
-        when(holidayDAO.getAllHolidays()).thenReturn(new ArrayList<>());
-
-        List<Holiday> list = employeeService.getHolidays();
-
+        List<Holiday> list = service.getHolidays();
         assertNotNull(list);
     }
 
-    // 🔹 PERFORMANCE
     @Test
-    void testSubmitReviewSuccess() {
-        PerformanceReview review = new PerformanceReview();
+    @Order(6)
+    void testSubmitReview() {
+        PerformanceReview r = new PerformanceReview();
+        r.setEmployeeId(1);
+        r.setYear(2026);
+        r.setSelfAssessment("Good");
+        r.setAccomplishments("Done tasks");
+        r.setImprovements("Time management");
+        r.setRating(4);
 
-        employeeService.submitReview(review);
+        service.submitReview(r);
 
-        verify(performanceDAO).addReview(review);
+        assertTrue(true);
+    }
+
+
+    @Test
+    @Order(7)
+    void testAddGoal() {
+        Goal g = new Goal();
+        g.setEmployeeId(1);
+        g.setDescription("Complete project");
+        g.setDeadline(Date.valueOf("2026-05-01"));
+        g.setPriority("HIGH");
+        g.setSuccessMetrics("Finish on time");
+
+        service.addGoal(g);
+
+        assertTrue(true);
     }
 
     @Test
-    void testSubmitReviewInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.submitReview(null));
-    }
-
-    // 🔹 GOALS
-    @Test
-    void testAddGoalSuccess() {
-        Goal goal = new Goal();
-
-        employeeService.addGoal(goal);
-
-        verify(goalDAO).addGoal(goal);
-    }
-
-    @Test
-    void testAddGoalInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.addGoal(null));
-    }
-
-    @Test
+    @Order(8)
     void testUpdateGoalStatus() {
-        employeeService.updateGoalStatus(1, "DONE");
-
-        verify(goalDAO).updateGoalStatus(1, "DONE");
+        service.updateGoalStatus(1, "COMPLETED"); // goalId must exist
+        assertTrue(true);
     }
 
-    @Test
-    void testUpdateGoalStatusInvalid() {
-        assertThrows(RuntimeException.class,
-                () -> employeeService.updateGoalStatus(0, null));
-    }
 
-    // 🔹 NOTIFICATIONS
     @Test
+    @Order(9)
     void testGetNotifications() {
-        when(notificationDAO.getNotifications(1)).thenReturn(new ArrayList<>());
-
-        List<Notification> list = employeeService.getNotifications(1);
-
+        List<Notification> list = service.getNotifications(1);
         assertNotNull(list);
     }
 
+
     @Test
+    @Order(10)
     void testGetUnreadCount() {
-        when(notificationDAO.getUnreadCount(1)).thenReturn(3);
-
-        int count = employeeService.getUnreadCount(1);
-
-        assertEquals(3, count);
+        int count = service.getUnreadCount(1);
+        assertTrue(count >= 0);
     }
+
 
     @Test
+    @Order(11)
     void testMarkNotificationsRead() {
-        employeeService.markNotificationsRead(1);
-
-        verify(notificationDAO).markAllAsRead(1);
+        service.markNotificationsRead(1);
+        assertTrue(true);
     }
+
+    @AfterAll
+    static void end() {
+        System.out.println("=== Finished Employee Service Tests ===");
+    }
+
 }

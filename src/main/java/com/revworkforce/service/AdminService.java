@@ -47,8 +47,32 @@ public class AdminService {
     public void addEmployee(Employee emp) {
         logger.info("Adding new employee");
         if (emp == null) {
-            logger.severe("Employee object is null");
+            logger.warning("Employee object is null");
             throw new RuntimeException("Employee cannot be null");
+        }
+        if (emp.getName() == null || emp.getName().isEmpty()) {
+            logger.warning("Employee name is empty");
+            throw new RuntimeException("Name cannot be empty");
+        }
+        if (emp.getEmail() == null || !emp.getEmail().contains("@")) {
+            logger.warning("Invalid email: " + emp.getEmail());
+            throw new RuntimeException("Invalid email");
+        }
+        if (emp.getPhone() == null || !emp.getPhone().matches("\\d{10}")) {
+            logger.warning("Invalid phone: " + emp.getPhone());
+            throw new RuntimeException("Phone must be 10 digits");
+        }
+        if (emp.getSalary() < 0) {
+            logger.warning("Invalid salary: " + emp.getSalary());
+            throw new RuntimeException("Salary cannot be negative");
+        }
+        if (emp.getDepartment() == null || emp.getDepartment().isEmpty()) {
+            logger.warning("Department is empty");
+            throw new RuntimeException("Department cannot be empty");
+        }
+        if (emp.getDesignation() == null || emp.getDesignation().isEmpty()) {
+            logger.warning("Designation is empty");
+            throw new RuntimeException("Designation cannot be empty");
         }
         employeeDAO.addEmployee(emp);
         logger.info("Employee added successfully");
