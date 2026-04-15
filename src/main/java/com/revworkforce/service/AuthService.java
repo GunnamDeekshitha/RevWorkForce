@@ -1,70 +1,123 @@
 package com.revworkforce.service;
 
 import com.revworkforce.dao.EmployeeDAO;
+import com.revworkforce.exception.DatabaseException;
+import com.revworkforce.exception.InvalidInputException;
 import com.revworkforce.model.Employee;
+
 import java.util.logging.Logger;
 
 public class AuthService {
+
     private static final Logger logger = Logger.getLogger(AuthService.class.getName());
-    private EmployeeDAO employeeDAO;
+
+    private final EmployeeDAO employeeDAO;
+
     public AuthService() {
         this.employeeDAO = new EmployeeDAO();
     }
+
     public AuthService(EmployeeDAO employeeDAO) {
         this.employeeDAO = employeeDAO;
     }
+
+
     public Employee login(String email, String password) {
         logger.info("Login attempt for email: " + email);
-        if (email == null || password == null) {
-            logger.severe("Email or password is null");
-            throw new RuntimeException("Invalid login input");
+
+        if (email == null || email.trim().isEmpty()) {
+            throw new InvalidInputException("Email cannot be null or empty");
         }
-        Employee emp = employeeDAO.getEmployeeByEmail(email);
-        if (emp != null) {
-            if (!emp.getStatus().equalsIgnoreCase("ACTIVE")) {
-                logger.warning("Account is inactive for email: " + email);
+        if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new InvalidInputException("Invalid email format: " + email);
+        }
+        if (password == null || password.trim().isEmpty()) {
+            throw new InvalidInputException("Password cannot be null or empty");
+        }
+
+        try {
+            Employee emp = employeeDAO.getEmployeeByEmail(email);
+            if (emp == null) {
+                logger.warning("User not found for email: " + email);
                 return null;
             }
-            else if (emp.getPassword().equals(password)) {
-                logger.info("Login successful for email: " + email);
-                return emp;
-            } else {
-                logger.warning("Invalid password for email: " + email);
+            if (!emp.getStatus().equalsIgnoreCase("ACTIVE")) {
+                logger.warning("Inactive account login attempt: " + email);
+                return null;
             }
-        } else {
-            logger.warning("User not found for email: " + email);
+            if (!emp.getPassword().equals(password)) {
+                logger.warning("Wrong password for email: " + email);
+                return null;
+            }
+            logger.info("Login successful for: " + email);
+            return emp;
+        } catch (DatabaseException e) {
+            logger.severe("DB error during login for " + email + ": " + e.getMessage());
+            throw e;
         }
-        return null;
     }
 
     public String changePassword(int empId, String oldPass, String newPass) {
         logger.info("Password change request for employee ID: " + empId);
-        if (empId <= 0 || oldPass == null || newPass == null) {
-            logger.severe("Invalid input for password change");
-            throw new RuntimeException("Invalid input");
+
+        if (empId <= 0) {
+            throw new InvalidInputException("Employee ID must be a positive number");
         }
-        if (!employeeDAO.verifyPassword(empId, oldPass)) {
-            logger.warning("Incorrect current password for employee ID: " + empId);
-            return "Incorrect current password!";
+        if (oldPass == null || oldPass.trim().isEmpty()) {
+            throw new InvalidInputException("Current password cannot be empty");
         }
-        employeeDAO.updatePassword(empId, newPass);
-        logger.info("Password updated successfully for employee ID: " + empId);
-        return "Password updated successfully!";
+        if (newPass == null || newPass.trim().isEmpty()) {
+            throw new InvalidInputException("New password cannot be empty");
+        }
+        if (newPass.length() < 6) {
+            throw new InvalidInputException("New password must be at least 6 characters");
+        }
+        if (oldPass.equals(newPass)) {
+            throw new InvalidInputException("New password must be different from current password");
+        }
+
+        try {
+            if (!employeeDAO.verifyPassword(empId, oldPass)) {
+                logger.warning("Incorrect current password for employee ID: " + empId);
+                return "Incorrect current password!";
+            }
+            employeeDAO.updatePassword(empId, newPass);
+            logger.info("Password updated for employee ID: " + empId);
+            return "Password updated successfully!";
+        } catch (DatabaseException e) {
+            logger.severe("DB error during password change for employee " + empId + ": " + e.getMessage());
+            throw e;
+        }
     }
 
     public String resetPassword(String email, String newPass) {
         logger.info("Password reset request for email: " + email);
-        if (email == null || newPass == null) {
-            logger.severe("Invalid input for password reset");
-            throw new RuntimeException("Invalid input");
+
+        if (email == null || email.trim().isEmpty()) {
+            throw new InvalidInputException("Email cannot be null or empty");
         }
-        Employee emp = employeeDAO.getByEmail(email);
-        if (emp == null) {
-            logger.warning("Email not found: " + email);
-            return "Email not found!";
+        if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new InvalidInputException("Invalid email format: " + email);
         }
-        employeeDAO.updatePassword(emp.getEmployeeId(), newPass);
-        logger.info("Password reset successful for email: " + email);
-        return "Password reset successfully!";
+        if (newPass == null || newPass.trim().isEmpty()) {
+            throw new InvalidInputException("New password cannot be empty");
+        }
+        if (newPass.length() < 6) {
+            throw new InvalidInputException("New password must be at least 6 characters");
+        }
+
+        try {
+            Employee emp = employeeDAO.getByEmail(email);
+            if (emp == null) {
+                logger.warning("Email not found: " + email);
+                return "Email not found!";
+            }
+            employeeDAO.updatePassword(emp.getEmployeeId(), newPass);
+            logger.info("Password reset successful for: " + email);
+            return "Password reset successfully!";
+        } catch (DatabaseException e) {
+            logger.severe("DB error during password reset for " + email + ": " + e.getMessage());
+            throw e;
+        }
     }
 }

@@ -1,20 +1,36 @@
 package com.revworkforce.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+import com.revworkforce.exception.DatabaseException;
 import com.revworkforce.model.PerformanceReview;
 import com.revworkforce.util.DBConnection;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.ResultSet;
 import java.util.logging.Logger;
 
 public class PerformanceDAO {
+
     private static final Logger logger = Logger.getLogger(PerformanceDAO.class.getName());
+
+    private PerformanceReview mapRow(ResultSet rs) throws SQLException {
+        PerformanceReview pr = new PerformanceReview();
+        pr.setReviewId(rs.getInt("review_id"));
+        pr.setEmployeeId(rs.getInt("employee_id"));
+        pr.setYear(rs.getInt("year"));
+        pr.setSelfAssessment(rs.getString("self_assessment"));
+        pr.setAccomplishments(rs.getString("accomplishments"));
+        pr.setImprovements(rs.getString("improvements"));
+        pr.setRating(rs.getInt("rating"));
+        pr.setManagerFeedback(rs.getString("manager_feedback"));
+        return pr;
+    }
+
     public void addReview(PerformanceReview review) {
-        String query = "INSERT INTO performance_review (employee_id, year, self_assessment, accomplishments, improvements, rating) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO performance_review (employee_id, year, self_assessment, accomplishments, improvements, rating) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, review.getEmployeeId());
             ps.setInt(2, review.getYear());
             ps.setString(3, review.getSelfAssessment());
@@ -22,103 +38,91 @@ public class PerformanceDAO {
             ps.setString(5, review.getImprovements());
             ps.setInt(6, review.getRating());
             ps.executeUpdate();
-        } catch (Exception e) {
-            logger.warning("Error adding performance review: " + e.getMessage());
+
+        } catch (SQLException e) {
+            logger.severe("DB error adding performance review: " + e.getMessage());
+            throw new DatabaseException("Failed to add performance review for employee ID: " + review.getEmployeeId(), e);
+        }
+    }
+
+    public PerformanceReview getReviewById(int reviewId) {
+        String sql = "SELECT * FROM performance_review WHERE review_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, reviewId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next() ? mapRow(rs) : null;
+
+        } catch (SQLException e) {
+            logger.severe("DB error fetching review " + reviewId + ": " + e.getMessage());
+            throw new DatabaseException("Failed to fetch performance review with ID: " + reviewId, e);
         }
     }
 
     public List<PerformanceReview> getReviewsByEmployee(int empId) {
         List<PerformanceReview> list = new ArrayList<>();
-        String query = "SELECT * FROM performance_review WHERE employee_id = ?";
+        String sql = "SELECT * FROM performance_review WHERE employee_id = ?";
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, empId);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                PerformanceReview pr = new PerformanceReview();
-                pr.setReviewId(rs.getInt("review_id"));
-                pr.setEmployeeId(rs.getInt("employee_id"));
-                pr.setYear(rs.getInt("year"));
-                pr.setSelfAssessment(rs.getString("self_assessment"));
-                pr.setAccomplishments(rs.getString("accomplishments"));
-                pr.setImprovements(rs.getString("improvements"));
-                pr.setRating(rs.getInt("rating"));
-                pr.setManagerFeedback(rs.getString("manager_feedback"));
-                list.add(pr);
-            }
-        } catch (Exception e) {
-            logger.warning("Error fetching employee reviews: " + e.getMessage());
+            while (rs.next()) list.add(mapRow(rs));
+            return list;
+
+        } catch (SQLException e) {
+            logger.severe("DB error fetching reviews for employee " + empId + ": " + e.getMessage());
+            throw new DatabaseException("Failed to fetch performance reviews for employee ID: " + empId, e);
         }
-        return list;
     }
 
     public List<PerformanceReview> getReviewsByManager(int managerId) {
         List<PerformanceReview> list = new ArrayList<>();
-        String query = "SELECT pr.* FROM performance_review pr " +
+        String sql = "SELECT pr.* FROM performance_review pr " +
                 "JOIN employee e ON pr.employee_id = e.employee_id " +
                 "WHERE e.manager_id = ?";
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, managerId);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                PerformanceReview pr = new PerformanceReview();
-                pr.setReviewId(rs.getInt("review_id"));
-                pr.setEmployeeId(rs.getInt("employee_id"));
-                pr.setYear(rs.getInt("year"));
-                pr.setSelfAssessment(rs.getString("self_assessment"));
-                pr.setAccomplishments(rs.getString("accomplishments"));
-                pr.setImprovements(rs.getString("improvements"));
-                pr.setRating(rs.getInt("rating"));
-                pr.setManagerFeedback(rs.getString("manager_feedback"));
-                list.add(pr);
-            }
-        } catch (Exception e) {
-            logger.warning("Error fetching manager reviews: " + e.getMessage());
+            while (rs.next()) list.add(mapRow(rs));
+            return list;
+
+        } catch (SQLException e) {
+            logger.severe("DB error fetching reviews for manager " + managerId + ": " + e.getMessage());
+            throw new DatabaseException("Failed to fetch team reviews for manager ID: " + managerId, e);
         }
-        return list;
     }
 
     public void addManagerFeedback(int reviewId, String feedback) {
-        String query = "UPDATE performance_review SET manager_feedback = ? WHERE review_id = ?";
+        String sql = "UPDATE performance_review SET manager_feedback = ? WHERE review_id = ?";
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(query)) {
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setString(1, feedback);
             ps.setInt(2, reviewId);
             ps.executeUpdate();
-        } catch (Exception e) {
-            logger.warning("Error adding manager feedback: " + e.getMessage());
-        }
-    }
 
-    public PerformanceReview getReviewById(int reviewId) {
-        PerformanceReview r = null;
-        String sql = "SELECT * FROM performance_review WHERE review_id=?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, reviewId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                r = new PerformanceReview();
-                r.setReviewId(rs.getInt("review_id"));
-                r.setEmployeeId(rs.getInt("employee_id"));
-                r.setYear(rs.getInt("year"));
-            }
-        } catch (Exception e) {
-            logger.warning("Error fetching review by ID: " + e.getMessage());
+        } catch (SQLException e) {
+            logger.severe("DB error adding feedback to review " + reviewId + ": " + e.getMessage());
+            throw new DatabaseException("Failed to add manager feedback for review ID: " + reviewId, e);
         }
-        return r;
     }
 
     public void updateRating(int reviewId, int rating) {
-        String sql = "UPDATE performance_review SET rating=? WHERE review_id=?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "UPDATE performance_review SET rating = ? WHERE review_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setInt(1, rating);
             ps.setInt(2, reviewId);
             ps.executeUpdate();
-        } catch (Exception e) {
-            logger.warning("Error updating rating: " + e.getMessage());
+
+        } catch (SQLException e) {
+            logger.severe("DB error updating rating for review " + reviewId + ": " + e.getMessage());
+            throw new DatabaseException("Failed to update rating for review ID: " + reviewId, e);
         }
     }
 }

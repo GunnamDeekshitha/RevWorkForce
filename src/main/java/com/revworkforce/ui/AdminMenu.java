@@ -28,14 +28,14 @@ public class AdminMenu {
                 System.out.println("9. Adjust Leave Balance");
                 System.out.println("10. Cancel Leave");
                 System.out.println("11. View All Leave Records");
-                System.out.println("12. View Leave Statistics");
-                System.out.println("13. Add Announcement");
-                System.out.println("14. Add Holiday");
-                System.out.println("15. Delete Holiday");
-                System.out.println("16. Add Department");
-                System.out.println("17. Add Designation");
-                System.out.println("18. Reset Employee Password");
-                System.out.println("19. Logout");
+                //System.out.println("12. View Leave Statistics");
+                System.out.println("12. Add Announcement");
+                System.out.println("13. Add Holiday");
+                System.out.println("14. Delete Holiday");
+                System.out.println("15. Add Department");
+                System.out.println("16. Add Designation");
+                System.out.println("17. Reset Employee Password");
+                System.out.println("18. Logout");
 
                 int choice = sc.nextInt();
                 sc.nextLine();
@@ -416,18 +416,6 @@ public class AdminMenu {
 
                     case 12:
                         try {
-                            logger.info("View Leave Statistics");
-
-                            service.getStatistics();
-
-                        } catch (Exception e) {
-                            logger.warning(e.getMessage());
-                            System.out.println("Error fetching statistics!");
-                        }
-                        break;
-
-                    case 13:
-                        try {
                             logger.info("Add Announcement");
 
                             System.out.print("Enter Title: ");
@@ -446,7 +434,7 @@ public class AdminMenu {
                         }
                         break;
 
-                    case 14:
+                    case 13:
                         try {
                             logger.info("Add Holiday");
 
@@ -469,7 +457,7 @@ public class AdminMenu {
                         }
                         break;
 
-                    case 15:
+                    case 14:
                         try {
                             logger.info("Delete Holiday");
 
@@ -487,7 +475,7 @@ public class AdminMenu {
                         }
                         break;
 
-                    case 16:
+                    case 15:
                         try {
                             logger.info("Add Department");
 
@@ -504,7 +492,7 @@ public class AdminMenu {
                         }
                         break;
 
-                    case 17:
+                    case 16:
                         try {
                             logger.info("Add Designation");
 
@@ -537,7 +525,7 @@ public class AdminMenu {
                         }
                         break;
 
-                    case 18:
+                    case 17:
                         try {
                             logger.info("Reset Employee Password");
 
@@ -558,7 +546,7 @@ public class AdminMenu {
                         }
                         break;
 
-                    case 19:
+                    case 18:
                         logger.info("Logout");
                         System.out.println("Logged out!");
                         return;

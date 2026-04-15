@@ -283,7 +283,7 @@ public class EmployeeMenu {
 
                             System.out.print("Enter year: ");
                             review.setYear(sc.nextInt());
-                            sc.nextLine(); // IMPORTANT
+                            sc.nextLine();
 
                             System.out.print("Enter self assessment: ");
                             review.setSelfAssessment(sc.nextLine());
@@ -296,7 +296,7 @@ public class EmployeeMenu {
 
                             System.out.print("Enter rating (1-5): ");
                             review.setRating(sc.nextInt());
-                            sc.nextLine(); // IMPORTANT
+                            sc.nextLine();
 
                             service.submitReview(review);
 
